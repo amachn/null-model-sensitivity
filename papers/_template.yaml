@@ -1,0 +1,12 @@
+paper_id: Pxx # P01-P12
+title: "..." # paper title (can be abbreviated, like: Writer et al. [year])
+owner: "..." # who found this paper and is reproducing it?
+
+doi: "10.xxxx/..."
+pmid: "..."
+
+# these two can be the same if both exist in the same place
+data_url: "..."
+code_url: "..."
+
+reproduction_status: "..." # Not Started, In Progress, Blocked, or Reproduced

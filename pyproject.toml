@@ -1,0 +1,14 @@
+[project]
+name = "null-model-sensitivity"
+version = "0.1.0"
+description = "Assessment of null model sensitivity in published genomic enrichment analyses"
+requires-python = ">=3.11"
+dependencies = [
+    "PyYAML>=6.0",
+]
+
+[project.scripts]
+nullsens = "nullsens.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
