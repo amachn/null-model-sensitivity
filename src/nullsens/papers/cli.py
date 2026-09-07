@@ -2,10 +2,10 @@
 # - provides commands to the CLI for using the scripts contained in this folder
 
 # project imports
+from nullsens.papers.catalog import refresh_readme
 from nullsens.papers.metadata import (
     create_paper, get_existing_paper_ids, get_next_paper_id, load_paper, save_paper
 )
-from nullsens.papers.readme import refresh_readme
 
 # exposed fields for the add/edit cmds
 FIELDS = [

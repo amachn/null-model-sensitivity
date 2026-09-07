@@ -1,4 +1,4 @@
-# src/nullsens/papers/readme.py
+# src/nullsens/papers/catalog.py
 # - handles the status updating of the README.md file in root/papers
 
 # libraries
