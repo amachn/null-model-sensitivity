@@ -68,13 +68,15 @@ def load_all_papers() -> list[dict]:
 
 
 # updates the YAML file of the requested paper
-def save_paper(paper_id: str, data: dict) -> None:
+def save_paper(paper_id: str, data: dict) -> str:
     paper_id = normalize_paper_id(paper_id)
     path = get_paper_path(paper_id)
 
     data["paper_id"] = paper_id
     with path.open("w", encoding="utf-8") as f:
         yaml.safe_dump(data, f, sort_keys=False)
+
+    return paper_id
 
 
 # creates a new data dictionary used in the creation of a paper's YAML file
@@ -95,3 +97,16 @@ def create_paper(paper_id: str) -> dict:
         "code_url": "",
         "reproduction_status": "Not Started",
     }
+
+
+# deletes/drops a paper from the records
+def drop_paper(paper_id: str) -> str:
+    paper_id = normalize_paper_id(paper_id)
+    path = get_paper_path(paper_id)
+
+    if path.exists():
+        path.unlink()
+    else:
+        raise FileNotFoundError(f"Paper {paper_id} does not exist.")
+
+    return paper_id

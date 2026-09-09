@@ -45,8 +45,9 @@ Current commands:
 
 ```bash
 nullsens papers
- - list
  - add <paper-id [optional]>
  - edit <paper-id>
+ - delete <paper-id>
+ - list
  - refresh
 ```

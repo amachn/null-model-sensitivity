@@ -4,7 +4,7 @@
 # project imports
 from nullsens.papers.catalog import refresh_readme
 from nullsens.papers.metadata import (
-    create_paper, get_existing_paper_ids, get_next_paper_id, load_paper, save_paper
+    create_paper, drop_paper, get_existing_paper_ids, get_next_paper_id, load_paper, save_paper
 )
 
 # exposed fields for the add/edit cmds
@@ -63,6 +63,19 @@ def edit_command(args):
     print(f"\n{paper['paper_id']} updated successfully.")
 
 
+# remove a paper record and then refresh the catalog
+def delete_command(args):
+    try:
+        paper_id = drop_paper(args.paper_id)
+    except (ValueError, FileNotFoundError) as ex:
+        print(f"Error: {ex}")
+        return
+
+    refresh_readme()
+
+    print(f"{paper_id} deleted successfully.")
+
+
 # display all currently assigned paper IDs
 def list_command(args):
     paper_ids = get_existing_paper_ids()
@@ -97,6 +110,11 @@ def register_paper_commands(subparsers):
     edit_parser = paper_commands.add_parser("edit", help="Edit an existing paper")
     edit_parser.add_argument("paper_id", help="Paper ID, e.g. P01")
     edit_parser.set_defaults(func=edit_command)
+
+    # delete
+    delete_parser = paper_commands.add_parser("delete", help="Delete an existing paper")
+    delete_parser.add_argument("paper_id", help="Paper ID, e.g. P01")
+    delete_parser.set_defaults(func=delete_command)
 
     # list
     list_parser = paper_commands.add_parser("list", help="List existing paper IDs")
