@@ -38,6 +38,16 @@ def _create_hyperlink(value: str, link: _LinkType) -> str:
     return f"[Link]({url})"
 
 
+# creates a hyperlink to the specific reproductions/ folder for this paper if it exists
+def _paper_id_link(paper_id: str, repro_status: str) -> str:
+    repro_dir = PATHS.reproductions / paper_id
+
+    if repro_status.lower() != "not started" and repro_dir.is_dir():
+        return f"[{paper_id}](/reproductions/{paper_id}/)"
+
+    return paper_id
+
+
 # builds the papers/README.md table
 def build_table(papers: list[dict]) -> str:
     lines = [
@@ -46,7 +56,6 @@ def build_table(papers: list[dict]) -> str:
     ]
 
     for paper in papers:
-        paper_id = paper.get("paper_id", "")
         title = paper.get("title", "")
         owner = paper.get("owner", "")
 
@@ -55,7 +64,8 @@ def build_table(papers: list[dict]) -> str:
         data = _create_hyperlink(paper.get("data_url", ""), _LinkType.GENERIC)
         code = _create_hyperlink(paper.get("code_url", ""), _LinkType.GENERIC)
 
-        repro_status = paper.get("reproduction_status", "")
+        repro_status = paper.get("reproduction_status", "Not Started")
+        paper_id = _paper_id_link(paper.get("paper_id", ""), repro_status)
 
         lines.append(
             f"| {paper_id} | {title} | {owner} | {doi} |"
