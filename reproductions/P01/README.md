@@ -19,8 +19,8 @@
 
 ## Environment
 - **Operating System:** Windows 11 25H2
-- **R Version:** 4.5.3
-- **regioneR Version:** 1.42.0
+- **R Version:** 4.6.1
+- **regioneR Version:** 1.44.0
 
 ### Environment Setup
 The environment is stored in a `renv.lock` file using `renv`; to recreate the environment used in this reproduction, run:
