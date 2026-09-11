@@ -1,8 +1,8 @@
 # setwd("~/Desktop/Region-analysis")
 library("regioneR")
 set.seed(12345)
-A <- toGRanges("Bl-pirs-all-matches-hg18-6c-lifted-orig-hg38-2408-rem-random.bed") #(This should be replaced by your interest of RNA bed file)
-B <- toGRanges("chr1-22.Gene-2000UP.bed") #(This should be replaced by your interest of genome regions)
+A <- toGRanges("data/Bl-pirs-all-matches-hg18-6c-lifted-orig-hg38-2408-rem-random.bed") #(This should be replaced by your interest of RNA bed file)
+B <- toGRanges("data/chr1-22.Gene-2000UP.bed") #(This should be replaced by your interest of genome regions)
 #B <- filterChromosomes(B, chr.type="autosomal", organism="hg19")
 pt <- overlapPermTest(A, B, ntimes=100, genome="hg38", count.once=TRUE, alternative="auto")
 pt
