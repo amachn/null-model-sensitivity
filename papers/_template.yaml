@@ -9,4 +9,4 @@ pmid: "..."
 data_url: "..."
 code_url: "..."
 
-reproduction_status: "..." # Not Started, In Progress, Blocked, or Reproduced
+reproduction_status: "..." # Not Started, In Progress, QC, Blocked, or Reproduced
