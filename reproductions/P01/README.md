@@ -2,7 +2,7 @@
 
 ## Target
 
-- **Target result:** Figure 3e
+- **Target result:** Figure 3e ~ genomic annotation enrichment of baseline sperm sncRNA genomic locations
 - **Method:** `regioneR::overlapPermTest()`
 - **Genome build:** hg38
 
@@ -29,3 +29,13 @@ The environment is stored in a `renv.lock` file using `renv`; to recreate the en
 install.packages("renv")
 renv::restore()
 ```
+
+## Issues / Notes
+- Genome mask used in `regioneR::overlapPermTest()`
+  - The original analysis script does not specify a genome mask, so the `hg38` genome in the original study may be masked or unmasked.
+  - I've generated results for both a masked `hg38` genome and an unmasked one.
+  - After visual inspection, it appears that the unmasked `hg38` genome looks closest to the paper.
+- Extra annotation file
+  - There are two annotation files for exons: `chr1-22.codingexon.bed` and `chr1-22.exonplus.bed`.
+  - Only one of these appears to be used in the original figure.
+  - After examining the reproduction results, it appears that the coding exons are used.
