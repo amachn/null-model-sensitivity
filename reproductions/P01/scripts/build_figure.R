@@ -35,7 +35,7 @@ ggplot(plot_df, aes(x = annotation, y = z_score, fill = sncRNA)) +
   geom_text(
     aes(label = star_label, y = star_y),
     position = position_dodge(width = 0.9),
-    size = 4
+    size = 6
   ) +
   geom_hline(yintercept = 0, linewidth = 0.4) +
   geom_hline(yintercept = c(-2, 2), linetype = "dashed", linewidth = 0.4) +
