@@ -1,12 +1,9 @@
-paper_id: Pxx # P11
-title: GARFIELD classifies disease-relevant genomic features through integration of functional annotations with association signals [2019]
-owner: Advika 
-
+paper_id: P11
+title: GARFIELD classifies disease-relevant genomic features through integration of
+  functional annotations with association signals
+owner: Advika
 doi: 10.1038/s41588-018-0322-6
-pmid: "..."
-
-# these two can be the same if both exist in the same place
-data_url: "..."
-code_url: "..."
-
-reproduction_status: QC 
+pmid: '30692680'
+data_url: ''
+code_url: ''
+reproduction_status: Not Started

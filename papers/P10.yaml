@@ -1,12 +1,8 @@
-paper_id: Pxx # P10
-title: Expanded encyclopaedias of DNA elements in the human and mouse genomes [2020]
-owner: Advika 
-
+paper_id: P10
+title: Expanded encyclopaedias of DNA elements in the human and mouse genomes
+owner: Advika
 doi: 10.1038/s41586-020-2493-4
-pmid: "..."
-
-# these two can be the same if both exist in the same place
-data_url: "..."
-code_url: "..."
-
-reproduction_status: QC # Not Started, In Progress, QC, Blocked, or Reproduced
+pmid: '32728249'
+data_url: ''
+code_url: ''
+reproduction_status: QC

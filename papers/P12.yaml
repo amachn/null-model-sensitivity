@@ -1,13 +1,9 @@
-paper_id: Pxx # P12
-title: Chromatin marks identify critical cell types for fine mapping complex trait variants [2012]
-Might change this paper **
-owner: Advika 
-
+paper_id: P12
+title: Chromatin marks identify critical cell types for fine mapping complex trait
+  variants
+owner: Advika
 doi: 10.1038/ng.2504
-pmid: "..."
-
-# these two can be the same if both exist in the same place
-data_url: "..."
-code_url: "..."
-
-reproduction_status: QC 
+pmid: '23263488'
+data_url: ''
+code_url: ''
+reproduction_status: Not Started
