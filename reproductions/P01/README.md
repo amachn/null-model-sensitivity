@@ -30,6 +30,14 @@ install.packages("renv")
 renv::restore()
 ```
 
+## Results
+The reproduced results succeeded in qualitatively reproducing the overall pattern in Figure 3e. 
+Enrichment and depletion levels match closely to the original levels with no exceptions, 
+however there is some slight quantitative variation in some of the Z-scores. 
+This could easily be a result of software version differences, 
+or slight differences in analysis that were not made public. 
+*still awaiting QC to consider this paper fully reproduced
+
 ## Issues / Notes
 - Genome mask used in `regioneR::overlapPermTest()`
   - The original analysis script does not specify a genome mask, so the `hg38` genome in the original study may be masked or unmasked.
