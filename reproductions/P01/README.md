@@ -4,18 +4,19 @@
 
 - **Target result:** Figure 3e ~ genomic annotation enrichment of baseline sperm sncRNA genomic locations
 - **Method:** `regioneR::overlapPermTest()`
+- **Permutations:** 100
 - **Genome build:** hg38
 
 ## Original Source Files
 **Source URL:** see [`papers/README.md`](/papers/)
 
 ### Code
-- `running-Region-miRNA.R`
-- `running-Region-tRF.R`
-- `running-Region-piRNA.R`
+- `running-Region-miRNA.R` -> `scripts/original/`
+- `running-Region-piRNA.R` -> `scripts/original/`
+- `running-Region-tRF.R` -> `scripts/original/`
 
 ### Data
-- Genomic annotation and region files were obtained from `Genomic-Annot-Enrichment.zip`
+- Genomic annotation and region files were obtained from `Genomic-Annot-Enrichment.zip` and stored in `data/`
 
 ## Environment
 - **Operating System:** Windows 11 25H2
