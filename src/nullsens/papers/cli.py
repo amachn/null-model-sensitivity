@@ -98,7 +98,7 @@ def refresh_command(args):
 
 # register "nullsens papers" and add its subcommands
 def register_paper_commands(subparsers):
-    papers_parser = subparsers.add_parser("papers", help="Manage project paper metadata")
+    papers_parser = subparsers.add_parser("papers", aliases=["paper"], help="Manage project paper metadata")
     paper_commands = papers_parser.add_subparsers(dest="papers_command", required=True)
 
     # add
