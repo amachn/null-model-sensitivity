@@ -11,22 +11,41 @@ Assessment of null model sensitivity in published genomic enrichment analyses.
 
 ## Development Setup
 
-Clone the repository, then create a virtual environment:
+### Requirements
+- Git
+- Git LFS
+- Python >= 3.11
 
+### Clone the Repository
+Install and initalize Git LFS before cloning:
+```bash
+git lfs install
+```
+
+Clone the repository:
+```bash
+git clone https://github.com/amachn/null-model-sensitivity.git
+cd null-model-sensitivity
+```
+
+Ensure all Git LFS files are downloaded:
+```bash
+git lfs pull
+```
+
+### Python Environment
+Create a virtual environment:
 ```bash
 python -m venv .venv # python may be replaced by py or python3 depending on your setup
 ```
 
-Activate the environment.
-
-### Windows
-
+Then, activate the environment:
+#### Windows
 ```bash
-.venv/Scripts/activate
+.venv\Scripts\activate
 ```
 
-### macOS/Linux
-
+#### macOS/Linux
 ```bash
 source .venv/bin/activate
 ```
@@ -39,8 +58,12 @@ python -m pip install -e .
 
 This installs the `nullsens` CLI while keeping the source code editable.
 
-## CLI
+### Git LFS
+Large data files (like `.bed`, etc) are managed using Git LFS.
 
+After initial setup, normal git commands can be used, and Git LFS will handle tracked large files automatically.
+
+## CLI
 Current commands:
 
 ```bash
