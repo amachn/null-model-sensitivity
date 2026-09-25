@@ -1,0 +1,17 @@
+```{r}
+library(RLHub)
+library(RLSeq)
+```
+
+```{r}
+base_url <- "https://rlbase-data.s3.amazonaws.com"
+peaks <- "/peaks/"
+
+peak_url <- paste0(base_url, peaks, "SRX1025894_hg38.broadPeak")
+```
+
+```{r}
+rlr <- RLRanges(peaks = peak_url, genome = "hg38", sampleName = "SRX1025894")
+rlr <- analyzeRLFS(rlr)
+rlr
+```
