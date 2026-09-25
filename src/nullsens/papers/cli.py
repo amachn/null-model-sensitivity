@@ -84,7 +84,7 @@ def show_command(args):
         print(f"Error: {ex}")
         return
 
-    print(f"Paper ID: {paper[['paper_id']]}")
+    print(f"Paper ID: {paper['paper_id']}")
     for key, label in FIELDS:
         print(f"{label}: {paper.get(key, '')}")
 
