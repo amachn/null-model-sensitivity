@@ -22,7 +22,7 @@ The table below is generated automatically from the YAML metadata files. Do not 
 | [P10](/reproductions/P10/) | Expanded encyclopaedias of DNA elements in the human and mouse genomes | Advika | [Link](https://doi.org/10.1038/s41586-020-2493-4) |[Link](https://pubmed.ncbi.nlm.nih.gov/32728249) |  |  | QC |
 | P11 | GARFIELD classifies disease-relevant genomic features through integration of functional annotations with association signals | Advika | [Link](https://doi.org/10.1038/s41588-018-0322-6) |[Link](https://pubmed.ncbi.nlm.nih.gov/30692680) |  |  | Not Started |
 | P12 | Chromatin marks identify critical cell types for fine mapping complex trait variants | Advika | [Link](https://doi.org/10.1038/ng.2504) |[Link](https://pubmed.ncbi.nlm.nih.gov/23263488) |  |  | Not Started |
-| P13 | Quality-controlled R-loop meta-analysis reveals the characteristics of R-loop consensus regions | Addison/Sheridan | [Link](https://doi.org/10.1093/nar/gkac537) |[Link](https://pubmed.ncbi.nlm.nih.gov/35758606) | [Link](https://github.com/Bishop-Laboratory/RLoop-QC-Meta-Analysis-Miller-2022/) | [Link](https://github.com/Bishop-Laboratory/RLoop-QC-Meta-Analysis-Miller-2022/) | In Progress |
+| [P13](/reproductions/P13/) | Quality-controlled R-loop meta-analysis reveals the characteristics of R-loop consensus regions | Addison/Sheridan | [Link](https://doi.org/10.1093/nar/gkac537) |[Link](https://pubmed.ncbi.nlm.nih.gov/35758606) | [Link](https://github.com/Bishop-Laboratory/RLoop-QC-Meta-Analysis-Miller-2022/) | [Link](https://github.com/Bishop-Laboratory/RLoop-QC-Meta-Analysis-Miller-2022/) | In Progress |
 
 <!-- PAPER_TABLE_END -->
 
