@@ -71,6 +71,7 @@ nullsens papers
  - add <paper-id [optional]>
  - edit <paper-id>
  - delete <paper-id>
+ - show <paper-id>
  - list
  - refresh
 ```

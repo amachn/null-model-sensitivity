@@ -76,6 +76,19 @@ def delete_command(args):
     print(f"{paper_id} deleted successfully.")
 
 
+# display the contents of the provided paper ID
+def show_command(args):
+    try:
+        paper = load_paper(args.paper_id)
+    except (ValueError, FileNotFoundError) as ex:
+        print(f"Error: {ex}")
+        return
+
+    print(f"Paper ID: {paper[['paper_id']]}")
+    for key, label in FIELDS:
+        print(f"{label}: {paper.get(key, '')}")
+
+
 # display all currently assigned paper IDs
 def list_command(args):
     paper_ids = get_existing_paper_ids()
@@ -115,6 +128,11 @@ def register_paper_commands(subparsers):
     delete_parser = paper_commands.add_parser("delete", help="Delete an existing paper")
     delete_parser.add_argument("paper_id", help="Paper ID, e.g. P01")
     delete_parser.set_defaults(func=delete_command)
+
+    # show
+    show_parser = paper_commands.add_parser("show", help="Show paper metadata")
+    show_parser.add_argument("paper_id", help="Paper ID, e.g. P01")
+    show_parser.set_defaults(func=show_command)
 
     # list
     list_parser = paper_commands.add_parser("list", help="List existing paper IDs")
