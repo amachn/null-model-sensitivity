@@ -5,13 +5,18 @@ library(RLSeq)
 
 ```{r}
 base_url <- "https://rlbase-data.s3.amazonaws.com"
-peaks <- "/peaks/"
+samples <- c("SRX1025894", "SRX1025896", "SRX2683605", "SRX2675009")
+peak_urls <- paste0(base_url, "/peaks/", samples, "_hg38.broadPeak")
 
-peak_url <- paste0(base_url, peaks, "SRX1025894_hg38.broadPeak")
+for (url in peak_urls) {
+  dest <- paste0("../data/", strsplit(url, split = "/")[[1]][5])
+  download.file(url, dest)
+}
 ```
 
 ```{r}
-rlr <- RLRanges(peaks = peak_url, genome = "hg38", sampleName = "SRX1025894")
-rlr <- analyzeRLFS(rlr)
-rlr
+
+rlr <- RLRanges(peaks = url, genome = "hg38", sampleName = "SRX2675009")
+#rlr <- analyzeRLFS(rlr)
+#rlr
 ```
