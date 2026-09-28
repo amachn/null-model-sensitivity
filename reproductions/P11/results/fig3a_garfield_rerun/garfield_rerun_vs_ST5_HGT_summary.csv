@@ -1,0 +1,7 @@
+n,424
+pearson_r,0.86
+median_diff_neglog10P,1.94
+sig_both,363
+sig_paper_only_missed,1
+sig_rerun_only_extra,41
+binning,"default m5,n5,t5 (shipped)"
