@@ -1,0 +1,9 @@
+paper_id: P15
+title: Expanded Chromatin Accessibility Mapping Explains Genetic Variation Associated
+  with Complex Traits in Liver
+owner: Anugraka & Advika
+doi: 10.1101/2025.09.15.25335593
+pmid: '41001483'
+data_url: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE277774
+code_url: https://github.com/bwenz91/Liver_caQTL_mapping_code/tree/main/caQTL_mapping
+reproduction_status: QC
