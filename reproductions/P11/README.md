@@ -1,16 +1,12 @@
 # P11 – Reproduction: Iotchkova et al. 2019 (GARFIELD), Nat Genet 51:343-353, doi:10.1038/s41588-018-0322-6
 
-Assignment step covered: reproduce a published genomic-enrichment result with the authors' own
-code and data (the later null-model re-test with EGRE / GAT / regioneR is not part of this
-deliverable).
+Reproduce a published genomic-enrichment result with the authors' own
+code and data.
 
 **Note:** the paper never uses regioneR or GAT. It compares five enrichment tools — GARFIELD,
 GREGOR, LDSC, fgwas, GoShifter — across 21 GWAS traits and DHS / H3K27ac / H3K4me3 annotations
 (Fig. 4). GARFIELD is the paper's own method (Fig. 3), and is the primary reproduction target here.
 
-Every file below is either (a) required to run the reproduction, or (b) direct evidence of its
-result. Files that are easy to regenerate from the two (prep files kept only as intermediate build
-products of `make`, per-panel image variants, etc.) were removed — see "Reproducing this."
 
 ```
 P11/
@@ -34,23 +30,12 @@ released reference data, for the height GWAS shipped as the package's own exampl
 → `garfield-test.R` (enrichment test) → `garfield-plot.R` (the authors' own plotting code, which
 sources `garfield-plot-function.R`). `code/garfield_v2/` here holds only the four scripts the
 wrapper actually calls, plus `makefile`/`garfield-prep-chr.cpp` to build the pruning tool and the
-authors' `LICENSE`/`README`; their other released utilities (custom-GWAS formatting, custom
-annotation building, a post-hoc variant-extraction script) were never invoked and are not included.
-
-| file | what it is |
-|---|---|
-| `paper_Fig3a_height_published.png` | published Fig. 3a, cropped from the paper |
-| `garfield_rerun_HGT_wheel_plot.png` | same plot, drawn by the authors' `garfield-plot.R` from my rerun |
-| `garfield_rerun_vs_published_scatter.png` | quantitative check: rerun vs. published −log10 P, all 424 DHS annotations, T<1e-8 |
-| `garfield_rerun_vs_ST5_HGT.csv` / `..._summary.csv` | the numbers behind that scatter plot |
-| `raw_output/garfield.test.GIANT_HEIGHT.out` | raw rerun output (all annotations, all thresholds) — ground truth the scatter/CSVs above were derived from |
-| `raw_output/garfield.Meff.GIANT_HEIGHT.out` | effective-annotation count (Meff = 492.56) |
-| `raw_output/garfield.test.GIANT_HEIGHT.out.Hotspots.pdf` | source PDF for the rerun wheel plot |
+authors' `LICENSE`/`README`; 
 
 **Result:** Pearson r = 0.86 (rerun vs. published −log10 P); 363/364 published significant DHS
 enrichments recovered (99.7%); median offset +1.94 −log10 P (rerun slightly more significant).
 
-**Correction (kept for transparency):** an earlier pass tried a second binning (`m1,n15,t5`) copied
+**Correction:** an earlier pass tried a second binning (`m1,n15,t5`) copied
 from `garfield_run_dhs.sh` in the authors' `manuscript_custom_code`, on the assumption it was the
 real Fig. 4 setting. On closer reading, that script line actually calls a different, unpublished
 tool (`garfield-perm-feat.R`) and writes a file named `...timing.out` — it was the authors' CPU-timing
@@ -83,10 +68,3 @@ here since they're one command away — see "Reproducing this."
 4. Only GARFIELD was independently re-run; GREGOR, LDSC, fgwas, GoShifter were not (their inputs were never published).
 5. The rerun's quantitative check (r=0.86, 363/364) covers only the T<1e-8 layer of Fig. 3a, since that's the one threshold Supp. Table 5 publishes; the wheel-plot image itself covers all 8 thresholds, straight from the rerun's own output.
 
-## Reproducing this
-```
-cd code/garfield_v2 && make                     # compiles garfield-prep-chr
-# download & extract the authors' garfield-data.tar.gz from ebi.ac.uk/birney-srv/GARFIELD/
-DATADIR=/path/to/garfield-data INPUTNAME=GIANT_HEIGHT OUTDIR=../../results/fig3a_garfield_rerun/raw_output ./garfield
-cd ../.. && python3 code/fig4_recreate.py       # regenerates Fig4_recreated.png/pdf, all 4 individual panels, and all intermediate CSVs
-```
