@@ -14,8 +14,8 @@ from nullsens.paths import PATHS
 def normalize_paper_id(paper_id: str) -> str:
     paper_id = paper_id.upper().strip()
 
-    if not re.fullmatch(r"P(?:0[1-9]|1[0-6])", paper_id):
-        raise ValueError(f"Paper ID must be between P01 and P16.")
+    if not re.fullmatch(r"^P(?:0[1-9]|[1-9]\d)$", paper_id):
+        raise ValueError(f"Paper ID must use the format P01, P02, P13, etc.")
 
     return paper_id
 
@@ -36,13 +36,13 @@ def get_existing_paper_ids() -> list[str]:
 def get_next_paper_id() -> str:
     existing = set(get_existing_paper_ids())
 
-    for number in range(1, 17):
+    for number in range(1, 100):
         paper_id = f"P{number:02d}"
 
         if paper_id not in existing:
             return paper_id
 
-    raise RuntimeError("All paper IDs P01-P16 are already in use.")
+    raise RuntimeError("All paper IDs are already in use.")
 
 
 # loads the YAML file of the requested paper
