@@ -1,4 +1,5 @@
 # P03 - Chan et al. 2022
+***Reproduction Status: awaiting QC***
 
 ## Target
 - **Target result:** Figure 5 (Supplement 4C, also listed as S18C in methods) ~ chromatin state overlap of gene annotations with genes/NADs/LADs
@@ -37,10 +38,11 @@ renv::restore()
 ## Results
 The reproduced results generally succeeded in qualitatively reproducing the overall pattern in Figure 5-4c/S18C.
 In particular:
-- * list out good matches here
+- the undefined/quiescent state (`25_Quies`) was strongly depleted for genes and enriched for NADs/LADs
+- transcription-associated states were generally enriched for genes and depleted for NADs/LADs
+- promoter and enhancer states reproduced the majority of the pattern shown in the figure
 
 ### Discrepancies
-
 For `25_Quies`, repeated runs produced:
 - NAD Z-score range = 157.7–187.4; mean = 175.4
 - LAD Z-score range = 62.3–75.2; mean = 68.3
@@ -48,7 +50,17 @@ For `25_Quies`, repeated runs produced:
 The paper reported approximately Z = 150 for NAD overlap and Z = 90 for LAD overlap.
 
 Aside from `25_Quies`, most cells reproduced the published direction of enrichment/depletion. However, there were more discrepancies, including:
-- * list further numerical differences in the figure
+- repressed polycomb (`24_ReprPC`) versus LADs:
+  - the published figure shows enrichment and the reproduction is roughly neutral
+- bivalent promoter (`23_PromBiv`) versus LADs and genes:
+  - the figure shows enrichment for LADs and the reproduction is roughly neutral
+  - additionally, the figure shows depletion for genes, while the reproduction is roughly neutral
+- transcription regulation (`9_TxReg`) versus genes:
+  - the figure shows depletion and the reproduction shows enrichment
+- active enhancer flank (`15_EnhAF`) versus genes:
+  - the figure shows enrichment while the reproduction is depleted
+
+Several additional cells reproduce in the same direction but differ in magnitude.
 
 ## Issues / Notes
 - The paper methods refer to the figure as both Figure 5-4c and Figure S18C.

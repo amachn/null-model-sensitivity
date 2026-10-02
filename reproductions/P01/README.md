@@ -1,7 +1,7 @@
 # P01 - Vaz et al. 2025
+***Reproduction Status: awaiting QC***
 
 ## Target
-
 - **Target result:** Figure 3e ~ genomic annotation enrichment of baseline sperm sncRNA genomic locations
 - **Method:** `regioneR::overlapPermTest()`
 - **Permutations:** 100
@@ -33,11 +33,10 @@ renv::restore()
 
 ## Results
 The reproduced results succeeded in qualitatively reproducing the overall pattern in Figure 3e. 
-Enrichment and depletion levels match closely to the original levels with no exceptions, 
-however there is some slight quantitative variation in some of the Z-scores. 
-This could easily be a result of software version differences, 
-or slight differences in analysis that were not made public. 
-*still awaiting QC to consider this paper fully reproduced
+Enrichment and depletion levels match closely to the original levels with no exceptions; 
+however, there is some slight quantitative variation in some of the Z-scores. 
+This could easily be a result of software version differences  
+or slight differences in analysis that were not made public.
 
 ## Issues / Notes
 - Genome mask used in `regioneR::overlapPermTest()`
