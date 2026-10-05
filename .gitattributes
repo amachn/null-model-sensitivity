@@ -4,3 +4,4 @@
 *.bw filter=lfs diff=lfs merge=lfs -text
 *.png filter=lfs diff=lfs merge=lfs -text
 *.xlsx filter=lfs diff=lfs merge=lfs -text
+reproductions/P15/data/genrichAllPeaks_m10_g50_9.15.21.noBLnarrowpeak.gz filter=lfs diff=lfs merge=lfs -text
