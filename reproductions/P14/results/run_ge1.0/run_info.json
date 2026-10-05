@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "pearl2025.py",
+    "--repo",
+    "authors_files",
+    "--s7",
+    "data/dmm-18-052282-TableS7.xlsx",
+    "--out",
+    "results/run_ge1.0",
+    "--n-perm",
+    "100",
+    "--workspace",
+    "ref/workspace_umap36_ge1.0_minus_blacklist.bed.gz"
+  ],
+  "n_perm": 100,
+  "seed": 1,
+  "counter": "nucleotide-overlap",
+  "workspaces": "ref/workspace_umap36_ge1.0_minus_blacklist.bed.gz",
+  "numpy": "2.4.6",
+  "pandas": "3.0.6",
+  "seconds": 13.3
+}

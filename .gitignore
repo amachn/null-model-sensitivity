@@ -2,4 +2,4 @@
 **/__pycache__/
 src/*.egg-info/
 .Rproj.user
-.Rhistory
+.Rhistory.DS_Store

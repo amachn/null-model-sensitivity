@@ -1,0 +1,19 @@
+figure	annotation	obs_approx	null_median_approx	direction_in_figure	caption_claim	note
+S10	hg38_enhancers_fantom	415	322	enriched	enriched	exact, Table S6 (1000 shuffles); p_enr=0.000999
+S10	hg38_genes_1to5kb	2635	2356	enriched	NA	exact, Table S6; p_enr=0.000999
+S10	hg38_genes_3UTRs	288	387	depleted	depleted	exact, Table S6; p_dep=0.000999
+S10	hg38_genes_5UTRs	188	209	depleted	enriched	exact, Table S6; fold 0.90, p_dep=0.063 (NOT significant); caption says enriched
+S10	hg38_genes_cds	403	378	enriched	NA	exact, Table S6; p_enr=0.098 (not significant)
+S10	hg38_genes_exons	1579	1406	enriched	NA	exact, Table S6; p_enr=0.000999
+S10	hg38_genes_firstexons	895	713	enriched	NA	exact, Table S6; p_enr=0.000999
+S10	hg38_genes_intergenic	3776	3428	enriched	depleted	exact, Table S6; fold 1.10, p_enr=0.000999; caption says depleted
+S10	hg38_genes_intronexonboundaries	1639	1596	enriched	NA	exact, Table S6; p_enr=0.111 (not significant)
+S10	hg38_genes_introns	6420	6921	depleted	NA	exact, Table S6; p_dep=0.000999
+S10	hg38_genes_promoters	1469	1280	enriched	NA	exact, Table S6; p_enr=0.000999
+S11	H3K27ac-human	4283	4093	enriched	not_significant	exact, Table S7; fold 1.046, p_enr=0.057
+S11	H3K27me3-human	619	960	depleted	depleted	exact, Table S7; p_dep=0.001
+S11	H3K36me3-human	2825	4631.5	depleted	depleted	exact, Table S7; p_dep=0.001
+S11	H3K4me1-human	7132	6675.5	enriched	enriched	exact, Table S7; fold 1.068, p_enr=0.01
+S11	H3K4me3-human	3492	3586	depleted	not_significant	exact, Table S7; fold 0.974, p_enr=0.757, p_dep=0.244
+S11	H3K9ac-human	1567	1435	enriched	enriched	exact, Table S7; fold 1.092, p_enr=0.032
+S11	H3K9me3-human	1257	1036	enriched	enriched	exact, Table S7; fold 1.213, p_enr=0.004

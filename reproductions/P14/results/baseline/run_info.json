@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "pearl2025.py",
+    "--repo",
+    "authors_files",
+    "--s7",
+    "data/dmm-18-052282-TableS7.xlsx",
+    "--blacklist",
+    "ref/mm10-blacklist.v2.bed.gz",
+    "--out",
+    "results/baseline",
+    "--n-perm",
+    "100"
+  ],
+  "n_perm": 100,
+  "seed": 1,
+  "counter": "nucleotide-overlap",
+  "workspaces": "genome,genome-minus-blacklist",
+  "numpy": "2.4.6",
+  "pandas": "3.0.6",
+  "seconds": 4.5
+}

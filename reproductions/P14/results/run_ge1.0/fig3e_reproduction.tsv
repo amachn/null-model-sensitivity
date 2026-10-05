@@ -1,0 +1,6 @@
+workspace	peakset	annotation	l2fold	pvalue	s7_l2fold	s7_pvalue	n_perm
+workspace_umap36_ge1.0_minus_blacklist.bed.gz	all_reproducible	EZH2	2.786	9.999000099990002e-05	3.1683	1e-05	10000
+workspace_umap36_ge1.0_minus_blacklist.bed.gz	all_reproducible	H3K27Ac	1.75	9.999000099990002e-05	1.9916	1e-05	10000
+workspace_umap36_ge1.0_minus_blacklist.bed.gz	all_reproducible	H3K27me3	-1.507	9.999000099990002e-05	-1.4929	1e-05	10000
+workspace_umap36_ge1.0_minus_blacklist.bed.gz	all_reproducible	H3K4me3	2.299	9.999000099990002e-05	2.5816	1e-05	10000
+workspace_umap36_ge1.0_minus_blacklist.bed.gz	all_reproducible	H3K9me3	0.607	0.001	-0.1593	0.26711	10000
