@@ -39,7 +39,7 @@ def run_regioner(request: AnalysisRequest) -> AnalysisResult:
 
     # this method relies on us using "cat" for the actual output and "message" for diagnostics in R
     completed = subprocess.run(
-        [rscript, runner], input=json.dumps(payload), capture_output=True, text=True
+        [rscript, runner], cwd=runner.parent, input=json.dumps(payload), capture_output=True, text=True
     )
 
     if completed.returncode != 0:
