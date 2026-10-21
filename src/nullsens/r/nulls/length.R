@@ -1,5 +1,8 @@
 # ~~~ src/nullsens/r/nulls/length.R ~~~
 # - implementation of the length-matching null model
+suppressPackageStartupMessages({
+  library(regioneR)
+})
 
 # randomize positions while preserving the exact width of each original interval
 randomize_exact_length <- function(
