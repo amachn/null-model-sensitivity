@@ -5,6 +5,7 @@
 import argparse
 
 # project imports
+from nullsens.analysis.cli import register_analysis_commands
 from nullsens.papers.cli import register_paper_commands
 
 
@@ -17,6 +18,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     register_paper_commands(subparsers)
+    register_analysis_commands(subparsers)
 
     # parse CLI input and dispatch to the selected command
     args = parser.parse_args()
