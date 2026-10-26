@@ -41,15 +41,19 @@ randomize_function <- build_randomizer(
 )
 
 # run one enrichment test
-test <- regioneR::permTest(
-  A = regions_a,
-  B = regions_b,
-  ntimes = config$permutations,
-  genome = config$genome,
-  randomize.function = randomize_function,
-  evaluate.function = regioneR::numOverlaps,
-  verbose = FALSE
-)
+backend_output <- capture.output({
+  test <- regioneR::permTest(
+    A = regions_a,
+    B = regions_b,
+    ntimes = config$permutations,
+    genome = config$genome,
+    randomize.function = randomize_function,
+    evaluate.function = regioneR::numOverlaps,
+    verbose = FALSE
+  )
+})
+
+if (length(backend_output) > 0) { writeLines(backend_output, con = stderr()) }
 
 result <- test[[1]]
 
