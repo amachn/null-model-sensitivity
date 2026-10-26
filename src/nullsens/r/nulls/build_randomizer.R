@@ -1,8 +1,6 @@
 # ~~~ src/nullsens/r/nulls/build_randomizer.R ~~~
 # - generates a randomization function appropriate for the provided null combo
 # * INTEGRATION OF THE NULLS HAPPENS HERE
-source("length.R")
-
 build_randomizer <- function(config, refs, regions, genome) {
   # current thoughts:
   # 1. establish length behavior (operates differently from other nulls)
