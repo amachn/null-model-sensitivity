@@ -8,7 +8,7 @@ suppressPackageStartupMessages({
 randomize_exact_length <- function(
     A, genome, mask = NULL, ...
 ) {
-  regioneR::randomizeRegions(A = a, genome = genome, mask = mask)
+  regioneR::randomizeRegions(A = A, genome = genome, mask = mask)
 }
 
 # placeholder
