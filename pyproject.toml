@@ -12,3 +12,14 @@ nullsens = "nullsens.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+nullsens = [
+    "r/*.R",
+    "r/nulls/*.R",
+    "r/.Rprofile",
+    "r/renv.lock",
+    "r/.gitignore",
+    "r/renv/activate.R",
+    "r/renv/settings.json",
+]
