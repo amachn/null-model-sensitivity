@@ -9,7 +9,8 @@ import shutil
 import subprocess
 
 # project imports
-from nullsens.analysis.models import AnalysisRequest, AnalysisResult
+from nullsens.analysis import AnalysisRequest, AnalysisResult
+from nullsens.paths import PACKAGE_PATHS
 
 
 def run_regioner(request: AnalysisRequest) -> AnalysisResult:
@@ -17,7 +18,7 @@ def run_regioner(request: AnalysisRequest) -> AnalysisResult:
     if rscript is None:
         raise RuntimeError("Rscript was not found on PATH.")
 
-    runner = Path(__file__).resolve().parents[1] / "r" / "regioner_runner.R"
+    runner = PACKAGE_PATHS.r / "regioner_runner.R"
 
     payload = {
         "regions_a": str(request.regions_a.resolve()),

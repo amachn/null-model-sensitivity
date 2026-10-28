@@ -2,7 +2,7 @@
 # - tool selection layer between the Python tool and the R backend
 
 # project imports
-from nullsens.analysis.models import AnalysisRequest, AnalysisResult
+from nullsens.analysis import AnalysisRequest, AnalysisResult
 from nullsens.backends import run_regioner
 
 

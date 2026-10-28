@@ -7,7 +7,9 @@ import re
 import yaml
 
 # project imports
-from nullsens.paths import PATHS
+from nullsens.paths import get_project_paths
+
+PATHS = get_project_paths()
 
 
 # validate the provided paper ID

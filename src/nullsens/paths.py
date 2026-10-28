@@ -9,20 +9,17 @@ from pathlib import Path
 PROJECT_HEAD = ".capstone"
 
 
-# performs an upward directory search from the run location to find the top directory
-def find_project_root() -> Path:
-    path = Path.cwd().resolve()
-    if path.is_file():
-        path = path.parent
+# dataclass used to easily access the pathlib Paths for package-specific directories
+@dataclass(frozen=True)
+class PackagePaths:
+    root: Path
 
-    for candidate in (path, *path.parents):
-        if (candidate / PROJECT_HEAD).exists():
-            return candidate
-
-    raise RuntimeError(f"Could not find project root ({PROJECT_HEAD}).")
+    @property
+    def r(self) -> Path:
+        return self.root / "r"
 
 
-# dataclass used to easily access the pathlib Paths for specific directories
+# dataclass used to easily access the pathlib Paths for repository-specific directories
 @dataclass(frozen=True)
 class ProjectPaths:
     root: Path
@@ -42,5 +39,22 @@ class ProjectPaths:
     # add future commonly used project paths (files too) here in the same manner as above
 
 
-# pre-initialized ProjectPaths
-PATHS = ProjectPaths(find_project_root())
+# performs an upward directory search from the run location to find the top directory
+def find_project_root() -> Path:
+    path = Path.cwd().resolve()
+    if path.is_file():
+        path = path.parent
+
+    for candidate in (path, *path.parents):
+        if (candidate / PROJECT_HEAD).exists():
+            return candidate
+
+    raise RuntimeError(f"Could not find project root ({PROJECT_HEAD}).")
+
+
+# don't immediately initialize, as the project paths won't exist if this is installed as a package
+def get_project_paths() -> ProjectPaths:
+    return ProjectPaths(find_project_root())
+
+
+PACKAGE_PATHS = PackagePaths(Path(__file__).resolve().parent)

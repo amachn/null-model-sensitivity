@@ -5,10 +5,11 @@
 from enum import Enum
 
 # project imports
-from nullsens.paths import PATHS
-from nullsens.papers.metadata import load_all_papers
+from nullsens.paths import get_project_paths
+from .metadata import load_all_papers
 
 # statics
+PATHS = get_project_paths()
 README = PATHS.papers / "README.md"
 START_MARKER = "<!-- PAPER_TABLE_START -->"
 END_MARKER = "<!-- PAPER_TABLE_END -->"
