@@ -6,14 +6,14 @@ suppressPackageStartupMessages({
 
 # randomize positions while preserving the exact width of each original interval
 randomize_exact_length <- function(
-    A, genome, mask = NULL, ...
+    A, genome, mask = NA, ...
 ) {
-  regioneR::randomizeRegions(A = A, genome = genome, mask = mask)
+  regioneR::randomizeRegions(A = A, genome = genome, mask = mask, ...)
 }
 
 # placeholder
 randomize_length_distribution <- function(
-    A, genome, mask = NULL, ...
+    A, genome, mask = NA, ...
 ) {
   stop("length-distribution matching isn't implemented yet.")
 }
