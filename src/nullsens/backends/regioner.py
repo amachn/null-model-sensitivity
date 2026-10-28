@@ -3,13 +3,11 @@
 
 # libraries
 from dataclasses import asdict
-from pathlib import Path
 import json
-import shutil
 import subprocess
 
 # project imports
-from nullsens.analysis import AnalysisRequest, AnalysisResult
+from nullsens.analysis.models import AnalysisRequest, AnalysisResult
 from nullsens.paths import PACKAGE_PATHS
 
 

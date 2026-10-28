@@ -5,8 +5,8 @@
 from enum import Enum
 
 # project imports
+from nullsens.papers.metadata import load_all_papers
 from nullsens.paths import get_project_paths
-from .metadata import load_all_papers
 
 # statics
 PATHS = get_project_paths()

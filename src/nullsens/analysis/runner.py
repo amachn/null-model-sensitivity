@@ -2,8 +2,8 @@
 # - tool selection layer between the Python tool and the R backend
 
 # project imports
-from nullsens.analysis import AnalysisRequest, AnalysisResult
-from nullsens.backends import run_regioner
+from nullsens.analysis.models import AnalysisRequest, AnalysisResult
+from nullsens.backends.regioner import run_regioner
 
 
 def validate_request(request: AnalysisRequest):
