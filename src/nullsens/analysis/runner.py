@@ -4,6 +4,7 @@
 # project imports
 from nullsens.analysis.models import AnalysisRequest, AnalysisResult
 from nullsens.backends.regioner import run_regioner
+from nullsens.genomes.manager import is_genome_installed
 
 
 def validate_request(request: AnalysisRequest):
@@ -15,6 +16,12 @@ def validate_request(request: AnalysisRequest):
 
     if not request.genome.strip():
         raise ValueError("Genome must be specified.")
+
+    if not is_genome_installed(request.genome):
+        raise RuntimeError(
+            f"Genome '{request.genome}' is not installed.\n"
+            f"Run: nullsens genomes install {request.genome}"
+        )
 
     if request.permutations < 1:
         raise ValueError("Permutations must be greater than 0.")

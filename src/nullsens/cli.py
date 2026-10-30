@@ -6,6 +6,7 @@ import argparse
 
 # project imports
 from nullsens.analysis.cli import register_analysis_commands
+from nullsens.genomes.cli import register_genome_commands
 from nullsens.papers.cli import register_paper_commands
 
 
@@ -17,8 +18,10 @@ def main():
     # register first-level subcommands, e.g. "nullsens papers"
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    # register second-level subcommands, e.g. "nullsens genomes list"
     register_paper_commands(subparsers)
     register_analysis_commands(subparsers)
+    register_genome_commands(subparsers)
 
     # parse CLI input and dispatch to the selected command
     args = parser.parse_args()
