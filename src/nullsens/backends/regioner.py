@@ -8,7 +8,7 @@ import subprocess
 
 # project imports
 from nullsens.analysis.models import AnalysisRequest, AnalysisResult
-from nullsens.backends.r_runtime import find_rscript
+from nullsens.backends.runtime import find_rscript
 from nullsens.paths import PACKAGE_PATHS
 
 

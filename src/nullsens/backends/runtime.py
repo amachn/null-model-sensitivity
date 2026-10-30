@@ -1,4 +1,4 @@
-# src/nullsens/backends/r_runtime.py
+# src/nullsens/backends/runtime.py
 # - shared utilities for interacting with the local R install
 
 # libraries
