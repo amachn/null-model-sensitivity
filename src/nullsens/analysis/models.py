@@ -3,18 +3,11 @@
 
 # libraries
 from dataclasses import dataclass, field
-from enum import StrEnum
 from pathlib import Path
-
-
-class LengthMode(StrEnum):
-    EXACT = "exact"
-    DISTRIBUTION = "distribution"
 
 
 @dataclass
 class NullConfig:
-    length_mode: LengthMode = LengthMode.EXACT
     gc_matched: bool = False
     chromatin_matched: bool = False
     mappability_masked: bool = False

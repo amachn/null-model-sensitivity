@@ -8,7 +8,6 @@ suppressPackageStartupMessages({
 })
 
 source("nulls/build_randomizer.R")
-source("nulls/length.R")
 
 # read the JSON request from stdin
 input <- paste(readLines(file("stdin"), warn = FALSE), collapse = "\n")

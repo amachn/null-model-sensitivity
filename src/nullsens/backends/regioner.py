@@ -23,7 +23,6 @@ def run_regioner(request: AnalysisRequest) -> AnalysisResult:
         "permutations": request.permutations,
         "seed": request.seed,
         "null": {
-            "length_mode": request.null.length_mode.value,
             "gc_matched": request.null.gc_matched,
             "chromatin_matched": request.null.chromatin_matched,
             "mappability_masked": request.null.mappability_masked,
