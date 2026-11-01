@@ -1,3 +1,5 @@
+# ~~~ src/nullsens/r/nulls/mappability.R ~~~
+# - prepares forbidden genomic regions for mappability-constrained randomization
 suppressPackageStartupMessages({
   library(rtracklayer)
   library(GenomicRanges)
