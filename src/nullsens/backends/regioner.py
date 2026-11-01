@@ -25,12 +25,16 @@ def run_regioner(request: AnalysisRequest) -> AnalysisResult:
         "null": {
             "gc_matched": request.null.gc_matched,
             "chromatin_matched": request.null.chromatin_matched,
-            "mappability_masked": request.null.mappability_masked,
+            "mappability": {
+                "enabled": request.null.mappability.enabled,
+                "threshold": request.null.mappability.threshold,
+                "invert": request.null.mappability.invert,
+            },
         },
         "references": {
             name: (str(path.resolve()) if path else None)
             for name, path in asdict(request.references).items()
-        }
+        },
     }
 
     # this method relies on us using "cat" for the actual output and "message" for diagnostics in R

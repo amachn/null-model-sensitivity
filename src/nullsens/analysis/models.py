@@ -7,10 +7,17 @@ from pathlib import Path
 
 
 @dataclass
+class MappabilityConfig:
+    enabled: bool = False
+    threshold: float | None = None
+    invert: bool = False
+
+
+@dataclass
 class NullConfig:
     gc_matched: bool = False
     chromatin_matched: bool = False
-    mappability_masked: bool = False
+    mappability: MappabilityConfig = field(default_factory=MappabilityConfig)
 
 
 @dataclass
