@@ -20,8 +20,7 @@ prepare_chromatin <- function(chromatin_bed, genome, pad = 2000,
   if (is.null(chromatin_bed) || !file.exists(chromatin_bed))
     stop("Chromatin reference not found: ", chromatin_bed)
   genome_gr <- as_genome_gr(genome)
-  context   <- conform(rtracklayer::import(chromatin_bed), genome_gr)
-  prepare_chromatin_null(context, genome_gr, pad, label_col, priority)
+  context   <- conform(rtracklayer::import(chromatin_bed), genome_gr) #will match chrom names and do additional processing
   strand(context) <- "*"
   if (pad > 0)
     context <- suppressWarnings(trim(resize(context, width(context) + 2 * pad, fix = "center")))
@@ -29,7 +28,7 @@ prepare_chromatin <- function(chromatin_bed, genome, pad = 2000,
   else as.list(split(context, mcols(context)[[label_col]]))
   if (!is.null(priority)) groups <- groups[intersect(priority, names(groups))]
   
-  states <- list(); covered <- GRanges()
+  states <- list(); covered <- GRanges(seqinfo = seqinfo(genome_gr))
   for (nm in names(groups)) {
     g <- GenomicRanges::setdiff(
       GenomicRanges::intersect(reduce(groups[[nm]]), genome_gr), covered)
@@ -41,7 +40,7 @@ prepare_chromatin <- function(chromatin_bed, genome, pad = 2000,
 }
 
 # ---- validate: per-candidate accept/reject. Candidate i replaces original i.
-validate_chromatin_null <- function(prep, original, candidate, strict = FALSE) {
+validate_chromatin <- function(prep, original, candidate, strict = FALSE) {
   lens   <- seqlengths(prep$genome_gr)
   in_bnd <- as.character(seqnames(candidate)) %in% names(lens) &
     start(candidate) >= 1 &
@@ -56,8 +55,8 @@ validate_chromatin_null <- function(prep, original, candidate, strict = FALSE) {
   for (s in unique(orig_state)) {
     i <- which(orig_state == s & in_bnd)
     if (!length(i)) next
-    ok[i] <- if (strict) overlapsAny(candidate[i], prep$states[[s]], type = "within")
-    else        overlapsAny(resize(candidate[i], 1, fix = "center"), prep$states[[s]])
+    ok[i] <- if (strict) overlapsAny(candidate[i], prep$states[[s]], type = "within", ignore.strand = TRUE)
+    else        overlapsAny(resize(candidate[i], 1, fix = "center"), prep$states[[s]], ignore.strand = TRUE)
   }
   ok
 }
