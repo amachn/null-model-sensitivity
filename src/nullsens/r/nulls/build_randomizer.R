@@ -3,7 +3,15 @@
 
 # evaluate every enabled validator
 validate_candidates <- function(original, candidate, validators) {
-  
+  valid <- rep(TRUE, length(candidate))
+  for (validator in validators) {
+    result <- validator(original, candidate)
+    if (!is.logical(result) || length(result) != length(candidate)) {
+      stop("A validator must return one TRUE/FALSE per candidate region.")
+    }
+    valid <- valid & result
+  }
+  valid
 }
 
 build_randomizer <- function(
