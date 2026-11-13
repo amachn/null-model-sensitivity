@@ -91,6 +91,96 @@ build_randomizer <- function(
   }
 }
 
+#Anugraka - Wrote a version of the build randomizer function to test map + gc, not sure if this is what we wanted
+'''
+build_randomizer <- function(
+  config, refs, regions, genome, max_attempts = 100L
+) {
+  mask <- NULL
+  map_ctx <- NULL
+  validators <- list()
+  diag <- new.env(parent = emptyenv())
+  diag$attempts <- integer(0)
+
+  if (isTRUE(config$mappability_masked)) {
+    if (is.null(refs$mappability)) {
+      stop("Mappability masking is enabled but no reference was provided.")
+    }
+
+    map_ctx <- prepare_mappability(
+      refs$mappability, genome,
+      config$mappability$threshold, config$mappability$invert
+    )
+    mask <- map_ctx$mask
+  }
+
+  if (isTRUE(config$gc_matched)) {
+    gc_ctx <- prepare_gc(
+      genome,
+      tolerance = config$gc$tolerance,
+      flank     = config$gc$flank,
+      max_n     = config$gc$max_n
+    )
+    validators <- c(validators, list(function(original, candidate) {
+      validate_gc(gc_ctx, original, candidate)
+    }))
+  }
+
+  if (isTRUE(config$chromatin_matched)) {
+    stop("Chromatin matching is enabled but hasn't been integrated yet.")
+  }
+
+  function(A, genome, ...) {
+    randomized <- regioneR::randomizeRegions(
+      A = A, genome = genome, mask = mask, ...
+    )
+
+    if (length(validators) == 0L) {
+      diag$attempts <- rep(1L, length(A))
+      return(randomized)
+    }
+
+    valid <- validate_candidates(A, randomized, validators)
+    attempts <- rep(1L, length(A))
+
+    while (any(!valid)) {
+      failed <- which(!valid)
+
+      attempts[failed] <- attempts[failed] + 1L
+      exceeded <- failed[attempts[failed] > max_attempts]
+
+      if (length(exceeded) > 0L) {
+        diag$attempts <- attempts
+        stop(
+          "Unable to place ", length(exceeded), " region(s) after ",
+          max_attempts, " attempts under the requested null-model constraints."
+        )
+      }
+
+      replacements <- regioneR::randomizeRegions(
+        A = A[failed],
+        genome = genome,
+        mask = mask,
+        ...
+      )
+
+      replacement_valid <- validate_candidates(
+        A[failed],
+        replacements,
+        validators
+      )
+
+      accepted <- failed[replacement_valid]
+      randomized[accepted] <- replacements[replacement_valid]
+      valid[accepted] <- TRUE
+    }
+
+    diag$attempts <- attempts
+    randomized
+  }
+}
+'''
+
 # core responsibilities
 # - at build time:
 # prepare GC context (if enabled)
