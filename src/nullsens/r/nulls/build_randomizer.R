@@ -179,6 +179,133 @@ build_randomizer <- function(
     randomized
   }
 }
+
+--------------------------------------------------Sheridan took Annas edited file and edited it to this:---------------------------------------------------------
+
+
+
+validate_candidates <- function(original, candidate, validators) {
+  valid <- rep(TRUE, length(candidate))
+  for (validator in validators) {
+    result <- validator(original, candidate)
+    if (!is.logical(result) || length(result) != length(candidate)) {
+      stop("A validator must return one TRUE/FALSE per candidate region.")
+    }
+    valid <- valid & result
+  }
+  valid[is.na(valid)] <-FALSE
+  valid
+}
+
+
+build_randomizer <- function(
+  config, refs, regions, genome, max_attempts = 100L
+) {
+  mask <- NULL
+  map_ctx <- NULL
+  chrom_ctx <- NULL
+  validators <- list()
+  diag <- new.env(parent = emptyenv())
+  diag$attempts <- integer(0)
+
+  if (isTRUE(config$mappability_masked)) {
+    if (is.null(refs$mappability)) {
+      stop("Mappability masking is enabled but no reference was provided.")
+    }
+
+    map_ctx <- prepare_mappability(
+      refs$mappability, genome,
+      config$mappability$threshold, config$mappability$invert
+    )
+    mask <- map_ctx$mask
+  }
+
+  if (isTRUE(config$gc_matched)) {
+    gc_ctx <- prepare_gc(
+      genome,
+      tolerance = config$gc$tolerance,
+      flank     = config$gc$flank,
+      max_n     = config$gc$max_n
+    )
+    validators <- c(validators, list(function(original, candidate) {
+      validate_gc(gc_ctx, original, candidate)
+    }))
+  }
+
+  if (isTRUE(config$chromatin_matched)) {
+    if (is.null(refs$chromatin)) stop("Chromatin enabled but no reference provided.")
+    chrom_ctx <- prepare_chromatin(refs$chromatin, genome,
+                                   pad = config$chromatin$pad,
+                                   label_col = config$chromatin$label_col,
+                                   priority = config$chromatin$priority)
+    validators <- c(validators, list(function(original, candidate)
+      validate_chromatin(chrom_ctx, original, candidate,
+                         strict = isTRUE(config$chromatin$strict))))
+    if (!is.null(map_ctx)) {
+      validators <- c(validators, list(function(original, candidate)
+        validate_mappability(map_ctx, original, candidate)))
+      mask <- NULL
+    }
+  }
+  
+  propose <- function(A, genome, ...) {
+    if (!is.null(chrom_ctx)) return(propose_chromatin(chrom_ctx, A))
+    args <- list(...)
+    args$mask <- NULL                      # use our mask, ignore permTest's
+    do.call(regioneR::randomizeRegions,
+            c(list(A = A, genome = genome, mask = mask), args))
+  }
+
+  function(A, genome, ...) {
+    randomized <- propose(
+      A = A, genome = genome, mask = mask, ...
+    )
+
+    if (length(validators) == 0L) {
+      diag$attempts <- rep(1L, length(A))
+      return(randomized)
+    }
+
+    valid <- validate_candidates(A, randomized, validators)
+    attempts <- rep(1L, length(A))
+
+    while (any(!valid)) {
+      failed <- which(!valid)
+
+      attempts[failed] <- attempts[failed] + 1L
+      exceeded <- failed[attempts[failed] > max_attempts]
+
+      if (length(exceeded) > 0L) {
+        diag$attempts <- attempts
+        stop(
+          "Unable to place ", length(exceeded), " region(s) after ",
+          max_attempts, " attempts under the requested null-model constraints."
+        )
+      }
+
+      replacements <- propose(
+        A = A[failed],
+        genome = genome,
+        mask = mask,
+        ...
+      )
+
+      replacement_valid <- validate_candidates(
+        A[failed],
+        replacements,
+        validators
+      )
+
+      accepted <- failed[replacement_valid]
+      randomized[accepted] <- replacements[replacement_valid]
+      valid[accepted] <- TRUE
+    }
+
+    diag$attempts <- attempts
+    randomized
+  }
+}
+
 '''
 
 # core responsibilities
