@@ -1,17 +1,84 @@
 # ~~~ src/nullsens/r/nulls/build_randomizer.R ~~~
-# - generates a randomization function appropriate for the provided null combo
+# - builds one regioneR-compatible randomization function from the
+#   requested null constraints
+#
+# - at build time:
+#   - prepare mappability mask, if enabled
+#   - prepare GC context, if enabled
+#   - prepare chromatin context, if enabled
+#   - construct validator functions
+# - at permutation time:
+#   - generate exact-width randomized regions
+#   - enforce static workspace masks during randomization
+#   - validate GC/chromatin constraints
+#   - resample only failed regions until every region passes
 
-# evaluate every enabled validator
+
+# runs every enabled per-region validator
+# - each validator must return exactly one T/F value for each candidate region:
+#   - TRUE = candidate satisfies the constraint
+#   - FALSE = candidate must be resampled
+# - a candidate is accepted only when it passes every enabled validator
 validate_candidates <- function(original, candidate, validators) {
   valid <- rep(TRUE, length(candidate))
-  for (validator in validators) {
-    result <- validator(original, candidate)
+  
+  for (name in names(validators)) {
+    result <- validators[[name]](original, candidate)
+    
     if (!is.logical(result) || length(result) != length(candidate)) {
-      stop("A validator must return one TRUE/FALSE per candidate region.")
+      stop(
+        "Null validator '", name, "' must return one TRUE/FALSE value ",
+        "per candidate region."
+      )
     }
+    
+    # an indeterminate result can't be accepted
+    result[is.na(result)] <- FALSE
     valid <- valid & result
   }
+  
   valid
+}
+
+# build one randomization function for one null-model config
+# - `regions` is kept because it is the original region set
+#   - future impls may use it to precompute original-region properties once
+#     rather than repeatedly
+build_randomizer <- function(
+  config, refs, regions, genome, max_attempts = 100L
+) {
+  if (max_attempts < 1L) { stop("max_attempts must be an integer >= 1.") }
+  
+  # ----
+  # 1 -> prepare static mask and candidate validators
+  # ----
+  # NA means nullsens explicitly has no baseline forbidden mask
+  prepared_mask <- NA
+  
+  # GC and chrom validators will be stored here
+  validators <- list()
+  
+  # ----
+  # 2 -> prepare mappability
+  # ----
+  if (config$mappability$enabled) {
+    if (is.null(refs$mappability)) {
+      stop("Mappability masking is enabled but no reference was provided.")
+    }
+    
+    mappability_context <- prepare_mappability(
+      mappability_bed = refs$mappability,
+      genome = genome,
+      threshold = config$mappability$threshold,
+      invert = config$mappability$inclusion_workspace
+    )
+    
+    prepared_mask <- mappability_context$mask
+  }
+  
+  # ----
+  # 3 -> prepare GC matching
+  # ----
 }
 
 build_randomizer <- function(
@@ -92,7 +159,7 @@ build_randomizer <- function(
 }
 
 #Anugraka - Wrote a version of the build randomizer function to test map + gc, not sure if this is what we wanted
-'''
+
 build_randomizer <- function(
   config, refs, regions, genome, max_attempts = 100L
 ) {
@@ -180,7 +247,7 @@ build_randomizer <- function(
   }
 }
 
---------------------------------------------------Sheridan took Annas edited file and edited it to this:---------------------------------------------------------
+# --------------------------------------------------Sheridan took Annas edited file and edited it to this:---------------------------------------------------------
 
 
 
@@ -306,7 +373,6 @@ build_randomizer <- function(
   }
 }
 
-'''
 
 # core responsibilities
 # - at build time:
