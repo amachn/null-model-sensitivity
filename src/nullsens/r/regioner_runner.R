@@ -7,25 +7,21 @@ suppressPackageStartupMessages({
   library(rtracklayer)
 })
 
-source("nulls/build_randomizer.R")
+source("io.R")
+
+source("nulls/chromatin.R")
+source("nulls/gc.R")
 source("nulls/mappability.R")
+source("nulls/build_randomizer.R")
 
 # read the JSON request from stdin
 input <- paste(readLines(file("stdin"), warn = FALSE), collapse = "\n")
 config <- jsonlite::fromJSON(input)
 
 # load region sets
-import_regions <- function(path) {
-  tryCatch(
-    rtracklayer::import(path),
-    error = function(err) {
-      stop("Unable to import region file: ", path, "\n", conditionMessage(err))
-    }
-  )
-}
-
-regions_a <- import_regions(config$regions_a)
-regions_b <- import_regions(config$regions_b)
+genome_gr <- as_genome_gr(config$genome)
+regions_a <- conform_regions(import_regions(config$regions_a), genome_gr)
+regions_b <- conform_regions(import_regions(config$regions_b), genome_gr)
 
 # configure reproducibility
 if (!is.null(config$seed)) {
@@ -46,7 +42,7 @@ backend_output <- capture.output({
     A = regions_a,
     B = regions_b,
     ntimes = config$permutations,
-    genome = config$genome,
+    genome = genome_gr,
     randomize.function = randomize_function,
     evaluate.function = regioneR::numOverlaps,
     verbose = FALSE
