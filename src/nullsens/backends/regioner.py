@@ -21,16 +21,9 @@ def run_regioner(request: AnalysisRequest) -> AnalysisResult:
         "regions_b": str(request.regions_b.resolve()),
         "genome": request.genome,
         "permutations": request.permutations,
+        "max_attempts": request.max_attempts,
         "seed": request.seed,
-        "null": {
-            "gc_matched": request.null.gc_matched,
-            "chromatin_matched": request.null.chromatin_matched,
-            "mappability": {
-                "enabled": request.null.mappability.enabled,
-                "threshold": request.null.mappability.threshold,
-                "invert": request.null.mappability.invert,
-            },
-        },
+        "null": {name: value for name, value in asdict(request.null).items()},
         "references": {
             name: (str(path.resolve()) if path else None)
             for name, path in asdict(request.references).items()

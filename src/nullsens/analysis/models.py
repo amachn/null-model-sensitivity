@@ -7,22 +7,41 @@ from pathlib import Path
 
 
 @dataclass
+class ChromatinConfig:
+    enabled: bool = False
+    padding: int | None = None
+    label_col: str | None = None
+    priority: list[str] | None = None
+    strict: bool = False
+
+
+@dataclass
+class GCConfig:
+    enabled: bool = False
+    tolerance: float = 0.02
+    flank: int = 0
+    max_n: float = 0.1
+
+
+@dataclass
 class MappabilityConfig:
     enabled: bool = False
     threshold: float | None = None
-    invert: bool = False
+
+    # False -> reference contains forbidden/excluded regions
+    # True -> reference contains allowed workspace; its complement becomes the forbidden mask
+    inclusion_workspace: bool = False
 
 
 @dataclass
 class NullConfig:
-    gc_matched: bool = False
-    chromatin_matched: bool = False
+    chromatin: ChromatinConfig = field(default_factory=ChromatinConfig)
+    gc: GCConfig = field(default_factory=GCConfig)
     mappability: MappabilityConfig = field(default_factory=MappabilityConfig)
 
 
 @dataclass
 class ReferenceFiles:
-    gc: Path | None = None
     chromatin: Path | None = None
     mappability: Path | None = None
 
@@ -34,6 +53,7 @@ class AnalysisRequest:
     genome: str
 
     permutations: int = 1000
+    max_attempts: int = 100
     seed: int | None = None
 
     null: NullConfig = field(default_factory=NullConfig)

@@ -43,7 +43,10 @@ def register_analysis_commands(subparsers):
     analyze_parser.add_argument("regions_a", type=Path, help="Path to genomic region set A")
     analyze_parser.add_argument("regions_b", type=Path, help="Path to genomic region set B")
     analyze_parser.add_argument("--genome", required=True, help="Reference genome, e.g. hg38")
-    analyze_parser.add_argument("--permutations", type=int, default=1000, help="Number of permutations (default: 1000)")
+    analyze_parser.add_argument("--permutations", type=int, default=1000,
+                                help="Number of permutations (default: 1000)")
+    analyze_parser.add_argument("--max-attempts", type=int, default=100,
+                                help="Maximum placement attempts per region (default: 100)")
     analyze_parser.add_argument("--seed", type=int, help="Optional random seed")
 
     # TODO: expand arguments with null flags once nulls are integrated
