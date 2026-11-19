@@ -5,6 +5,11 @@ suppressPackageStartupMessages({
   library(jsonlite)
   library(regioneR)
   library(rtracklayer)
+  library(Biostrings)
+  library(GenomeInfoDb)
+  library(GenomicRanges)
+  library(IRanges)
+  library(S4Vectors)
 })
 
 source("io.R")
@@ -30,22 +35,23 @@ if (!is.null(config$seed)) {
 
 # build requested null model
 randomize_function <- build_randomizer(
-  config = config$null,
-  refs = config$references,
-  regions = regions_a,
-  genome = config$genome
+  config       = config$null,
+  refs         = config$references,
+  regions      = regions_a,
+  genome       = config$genome,
+  max_attempts = config$max_attempts
 )
 
 # run one enrichment test
 backend_output <- capture.output({
   test <- regioneR::permTest(
-    A = regions_a,
-    B = regions_b,
-    ntimes = config$permutations,
-    genome = genome_gr,
+    A                  = regions_a,
+    B                  = regions_b,
+    ntimes             = config$permutations,
+    genome             = genome_gr,
     randomize.function = randomize_function,
-    evaluate.function = regioneR::numOverlaps,
-    verbose = FALSE
+    evaluate.function  = regioneR::numOverlaps,
+    verbose            = FALSE
   )
 })
 
@@ -56,12 +62,12 @@ result <- test[[1]]
 # write standardized output 
 # - this format allows the Python backend to unpack the JSON result with **
 output <- list(
-  observed = as.numeric(result$observed),
+  observed           = as.numeric(result$observed),
   permutation_values = as.numeric(result$permuted),
-  null_mean = mean(result$permuted, na.rm = TRUE),
-  null_sd = sd(result$permuted, na.rm = TRUE),
-  z_score = as.numeric(result$zscore),
-  p_value = as.numeric(result$pval)
+  null_mean          = mean(result$permuted, na.rm = TRUE),
+  null_sd            = sd(result$permuted, na.rm = TRUE),
+  z_score            = as.numeric(result$zscore),
+  p_value            = as.numeric(result$pval)
 )
 
 cat(jsonlite::toJSON(output, auto_unbox = TRUE, digits = NA))

@@ -8,7 +8,7 @@ suppressPackageStartupMessages({
   library(S4Vectors)
 })
 
-prepare_mappability <- function(mappability_bed, genome, threshold = NULL, invert = FALSE) {
+prepare_mappability <- function(mappability_bed, genome, threshold = NULL, inclusion_workspace = FALSE) {
   if (is.null(mappability_bed) || !file.exists(mappability_bed)) {
     stop("Mappability reference not found: ", mappability_bed)
   }
@@ -53,16 +53,16 @@ prepare_mappability <- function(mappability_bed, genome, threshold = NULL, inver
   track <- track[GenomicRanges::seqnames(track) %in% genome_seqs]
   GenomeInfoDb::seqlevels(track) <- genome_seqs
 
-  mask <- if (invert) GenomicRanges::setdiff(genome_gr, track) else track
+  mask <- if (inclusion_workspace) GenomicRanges::setdiff(genome_gr, track) else track
 
   list(
-    mask               = mask,
-    source             = mappability_bed,
-    threshold          = threshold,
-    invert             = invert,
-    n_intervals        = length(mask),
-    frac_genome_masked = sum(as.numeric(GenomicRanges::width(mask))) /
-                           sum(as.numeric(GenomicRanges::width(genome_gr)))
+    mask                = mask,
+    source              = mappability_bed,
+    threshold           = threshold,
+    inclusion_workspace = inclusion_workspace,
+    n_intervals         = length(mask),
+    frac_genome_masked  = sum(as.numeric(GenomicRanges::width(mask))) /
+                          sum(as.numeric(GenomicRanges::width(genome_gr)))
   )
 }
 
