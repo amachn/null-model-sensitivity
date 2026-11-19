@@ -20,8 +20,7 @@ prepare_chromatin <- function(chromatin_bed, genome, pad = 2000,
   if (is.null(chromatin_bed) || !file.exists(chromatin_bed))
     stop("Chromatin reference not found: ", chromatin_bed)
   genome_gr <- as_genome_gr(genome)
-  context   <- conform(rtracklayer::import(chromatin_bed), genome_gr) #will match chrom names and do additional processing
-  strand(context) <- "*"
+  context   <- conform(read_ccre(chromatin_bed), genome_gr) #will match chrom names and do additional processing
   if (pad > 0)
     context <- suppressWarnings(trim(resize(context, width(context) + 2 * pad, fix = "center")))
   groups <- if (is.null(label_col)) list(`in` = context)
@@ -39,25 +38,48 @@ prepare_chromatin <- function(chromatin_bed, genome, pad = 2000,
   list(states = states, genome_gr = genome_gr)
 }
 
+# which state each region's midpoint falls in
+state_of <- function(ctx, gr) {
+  mid <- resize(gr, 1, fix = "center")
+  st <- rep("out", length(gr))
+  for (nm in setdiff(names(ctx$states), "out"))
+    st[overlapsAny(mid, ctx$states[[nm]], ignore.strand = TRUE)] <- nm
+  st
+}
+
+# PROPOSE: generate candidates already inside each original's own state
+propose_chromatin <- function(ctx, A) {
+  st <- state_of(ctx, A); w <- width(A); lens <- seqlengths(ctx$genome_gr)
+  chr <- character(length(A)); s0 <- integer(length(A))
+  for (s in unique(st)) {
+    i <- which(st == s); pool <- ctx$states[[s]]
+    if (!length(pool)) stop("State '", s, "' has regions in A but no sequence")
+    k   <- sample(length(pool), length(i), replace = TRUE, prob = as.numeric(width(pool)))
+    mid <- start(pool)[k] + floor(runif(length(i)) * width(pool)[k])
+    chr[i] <- as.character(seqnames(pool))[k]
+    s0[i]  <- as.integer(mid - floor(w[i] / 2))
+  }
+  s0 <- pmax(1L, pmin(s0, as.integer(lens[chr] - w + 1)))   # clamp so widths are kept
+  GRanges(chr, IRanges(s0, width = w), seqinfo = seqinfo(ctx$genome_gr))
+}
+
+
 # ---- validate: per-candidate accept/reject. Candidate i replaces original i.
 validate_chromatin <- function(prep, original, candidate, strict = FALSE) {
   lens   <- seqlengths(prep$genome_gr)
-  in_bnd <- as.character(seqnames(candidate)) %in% names(lens) &
-    start(candidate) >= 1 &
-    end(candidate) <= lens[as.character(seqnames(candidate))]
-  
-  orig_state <- rep("out", length(original))
-  omid <- resize(original, 1, fix = "center")
-  for (nm in setdiff(names(prep$states), "out"))
-    orig_state[overlapsAny(omid, prep$states[[nm]])] <- nm
-  
+  chr <- as.character(seqnames(candidate))
+  in_bnd <- chr %in% names(lens) & start(candidate) >= 1 & end(candidate) <= lens[chr]
+  st <- state_of(prep, original)
   ok <- logical(length(candidate))
-  for (s in unique(orig_state)) {
-    i <- which(orig_state == s & in_bnd)
+  for (s in unique(st)) {
+    i <- which(st == s & in_bnd)
     if (!length(i)) next
-    ok[i] <- if (strict) overlapsAny(candidate[i], prep$states[[s]], type = "within", ignore.strand = TRUE)
-    else        overlapsAny(resize(candidate[i], 1, fix = "center"), prep$states[[s]], ignore.strand = TRUE)
+    ok[i] <- if (strict)
+      overlapsAny(candidate[i], prep$states[[s]], type = "within", ignore.strand = TRUE)
+    else
+      overlapsAny(resize(candidate[i], 1, fix = "center"), prep$states[[s]], ignore.strand = TRUE)
   }
   ok
 }
+
 
