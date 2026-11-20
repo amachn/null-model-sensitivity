@@ -181,7 +181,7 @@ build_randomizer <- function(
     
     # otherwise, use regioneR's normal exact-width randomization
     args <- list(...)
-    args$mask <- NULL # ignore any externally supplied mask
+    args$mask <- NA # ignore any externally supplied mask
     
     do.call(
       regioneR::randomizeRegions,
@@ -194,7 +194,7 @@ build_randomizer <- function(
   # 6 -> return the regioneR-compatible randomization closure
   # ----
   # everything below happens repeatedly, once per permutation
-  function(A, genome, mask = NA, ...) {
+  function(A, genome, ...) {
     # -----
     # 6A -> generate one candidate for every original region
     # -----
