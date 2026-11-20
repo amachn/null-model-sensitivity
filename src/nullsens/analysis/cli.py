@@ -62,12 +62,15 @@ def analyze_command(args):
         print(f"Error: {ex}")
         return
 
-    print("Analysis complete.")
+    print("Analysis complete.\n")
+    print(f"Regions analyzed: {result.n_peaks}")
     print(f"Observed overlap: {result.observed:g}")
-    print(f"Null mean: {result.null_mean:.4f}")
+    print(f"Expected overlap: {result.null_mean:.4f}")
+    print(f"Log2 fold change: {result.log2_fold_change:.4f}")
     print(f"Null SD: {result.null_sd:.4f}")
     print(f"Z-score: {result.z_score:.4f}")
     print(f"P-value: {result.p_value:.6g}")
+    print(f"Runtime: {result.runtime_seconds:.2f} s ({result.runtime_minutes:.2f} min)")
 
 # - CLI registration -
 

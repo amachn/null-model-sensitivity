@@ -62,10 +62,20 @@ class AnalysisRequest:
 
 @dataclass
 class AnalysisResult:
+    n_peaks: int
     observed: float
     permutation_values: list[float]
 
     null_mean: float
     null_sd: float
+
+    log2_fold_change: float
     z_score: float
     p_value: float
+
+    runtime_seconds: float
+
+    @property
+    def runtime_minutes(self) -> float:
+        return self.runtime_seconds / 60.0
+
