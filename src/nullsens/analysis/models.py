@@ -79,3 +79,42 @@ class AnalysisResult:
     def runtime_minutes(self) -> float:
         return self.runtime_seconds / 60.0
 
+
+@dataclass(frozen=True)
+class FactorialCondition:
+    label: str
+    mappability: bool
+    gc: bool
+    chromatin: bool
+
+
+@dataclass
+class FactorialRunResult:
+    condition: FactorialCondition
+    result: AnalysisResult | None = None
+    error: str | None = None
+
+    @property
+    def succeeded(self) -> bool:
+        return self.result is not None
+
+
+@dataclass
+class FactorialResult:
+    runs: list[FactorialRunResult]
+
+    @property
+    def successful_runs(self) -> list[FactorialRunResult]:
+        return [run for run in self.runs if run.succeeded]
+
+    @property
+    def total_runtime_seconds(self) -> float:
+        return sum(
+            run.result.runtime_seconds
+            for run in self.successful_runs
+            if run.result is not None
+        )
+
+    @property
+    def total_runtime_minutes(self) -> float:
+        return self.total_runtime_seconds / 60.0
