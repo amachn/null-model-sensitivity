@@ -77,11 +77,11 @@ import_tabular_regions <- function(path, zero_based = NULL) {
   
   GenomicRanges::makeGRangesFromDataFrame(
     data,
-    seqnames.field = chr_col,
-    start.field = start_col,
-    end.field = end_col,
+    seqnames.field          = chr_col,
+    start.field             = start_col,
+    end.field               = end_col,
     starts.in.df.are.0based = zero_based,
-    keep.extra.columns = FALSE
+    keep.extra.columns      = FALSE
   )
 }
 
@@ -91,7 +91,7 @@ import_tabular_regions <- function(path, zero_based = NULL) {
 import_bigbed_regions <- function(path) {
   bb_file <- rtracklayer::BigBedFile(path)
   gr <- rtracklayer::import(bb_file)
-  mcols(gr) <- NULL
+  S4Vectors::mcols(gr) <- NULL
   gr
 }
 
