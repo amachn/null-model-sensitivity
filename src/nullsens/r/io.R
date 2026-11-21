@@ -4,7 +4,7 @@
 
 # normalize column names for flexible matching
 normalize_column_name <- function(name) {
-  tolower(gsub("[^a-z0-9]", "", name))
+  tolower(gsub("[^a-zA-Z0-9]", "", name))
 }
 
 # get the file extension, ignoring compression extensions
@@ -21,7 +21,7 @@ find_column <- function(data, candidates) {
   normalized_columns <- normalize_column_name(columns)
   normalized_candidates <- normalize_column_name(candidates)
   
-  match_index <- match(normalized_columns, normalized_candidates, nomatch = 0L)
+  match_index <- match(normalized_candidates, normalized_columns, nomatch = 0L)
   match_index <- match_index[match_index > 0L]
   
   if (length(match_index) == 0L) { return(NULL) }
