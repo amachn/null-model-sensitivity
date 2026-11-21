@@ -23,6 +23,9 @@ def validate_request(request: AnalysisRequest):
             f"Run: nullsens genomes install {request.genome}"
         )
 
+    if request.cores < 1:
+        raise ValueError("Number of cores must be at least 1.")
+
     if request.permutations < 1:
         raise ValueError("Permutations must be greater than 0.")
 

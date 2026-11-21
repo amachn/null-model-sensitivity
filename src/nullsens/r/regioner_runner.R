@@ -54,6 +54,9 @@ backend_output <- capture.output({
     genome             = genome_gr,
     randomize.function = randomize_function,
     evaluate.function  = regioneR::numOverlaps,
+    force.parallel     = config$cores > 1L,
+    mc.cores           = config$cores,
+    mc.set.seed        = FALSE,
     verbose            = FALSE
   )
 })

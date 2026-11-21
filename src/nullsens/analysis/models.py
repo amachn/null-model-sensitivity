@@ -52,6 +52,7 @@ class AnalysisRequest:
     regions_b: Path
     genome: str
 
+    cores: int = 1
     permutations: int = 1000
     max_attempts: int = 100
     seed: int | None = None

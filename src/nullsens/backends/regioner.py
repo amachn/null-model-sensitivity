@@ -20,6 +20,7 @@ def run_regioner(request: AnalysisRequest) -> AnalysisResult:
         "regions_a": str(request.regions_a.resolve()),
         "regions_b": str(request.regions_b.resolve()),
         "genome": request.genome,
+        "cores": request.cores,
         "permutations": request.permutations,
         "max_attempts": request.max_attempts,
         "seed": request.seed,
