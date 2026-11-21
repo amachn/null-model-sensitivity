@@ -181,7 +181,7 @@ build_randomizer <- function(
     
     # otherwise, use regioneR's normal exact-width randomization
     args <- list(...)
-    args$mask <- NA # ignore any externally supplied mask
+    args$mask <- NULL # ignore any externally supplied mask
     
     do.call(
       regioneR::randomizeRegions,
@@ -223,37 +223,81 @@ build_randomizer <- function(
     # -----
     while(any(!valid)) {
       failed <- which(!valid)
+      remaining <- max_attempts - attempts[failed]
       
       # stop before making another proposal for regions that have already 
       # reached the allowed attempt count
-      exceeded <- failed[attempts[failed] >= max_attempts]
+      exceeded <- failed[remaining <= 0L]
       if (length(exceeded) > 0L) {
+        failed_regions <- A[exceeded]
+        
+        failed_labels <- paste0(
+          as.character(GenomicRanges::seqnames(failed_regions)), ":",
+          GenomicRanges::start(failed_regions), "-",
+          GenomicRanges::end(failed_regions)
+        )
+        
         stop(
           "Unable to place ", length(exceeded), " region(s) after ",
-          max_attempts, " attempts under the requested null-model constraints."
+          max_attempts, " attempts under the requested null-model constraints.",
+          "\nFailed region(s): ",
+          paste(utils::head(failed_labels, 10L), collapse = ", "),
+          if (length(exceeded) > 10L) " ..." else ""
         )
       }
       
-      # increment only the regions that need another proposal
-      attempts[failed] <- attempts[failed] + 1L
+      # number of proposals generated for each currently failed region
+      batch_sizes <- ifelse(
+        attempts[failed] < 25L, # if <25 attempts, only 1 proposal
+        1L,
+        ifelse(
+          attempts[failed] < 100L, # if <100 attempts, 8 proposals
+          8L,
+          ifelse(
+            attempts[failed] < 500L, # if <500 attempts, 32 proposals
+            32L,
+            64L # otherwise, 64 proposals at a time
+          )
+        )
+      )
+      batch_sizes <- pmin(batch_sizes, remaining)
       
-      # generate replacements for failed regions only
-      replacements <- propose(A = A[failed], genome = genome, ...)
-      validate_randomization(A[failed], replacements)
+      # repeat each failed original region batch_sizes[i] times
+      source_indices <- rep(failed, times = batch_sizes)
+      batch_groups <- rep(seq_along(failed), times = batch_sizes)
+      batch_original <- A[source_indices]
+      
+      # generate all retry candidates in one proposal call
+      replacements <- propose(A = batch_original, genome = genome, ...)
+      validate_randomization(batch_original, replacements)
       
       # test the replacement candidates against every enabled constraint
       replacement_valid <- validate_candidates(
-        original = A[failed], candidate = replacements, validators = validators
+        original = batch_original,
+        candidate = replacements,
+        validators = validators
       )
       
-      # convert successful replacement positions back into indices within
-      # the complete randomized region set
-      accepted <- failed[replacement_valid]
-      
-      # save only successful replacements
-      if (length(accepted) > 0L) {
-        randomized[accepted] <- replacements[replacement_valid]
-        valid[accepted] <- TRUE
+      # for each failed region, accept the first valid proposal
+      for (group_idx in seq_along(failed)) {
+        candidate_indices <- which(batch_groups == group_idx)
+        valid_positions <- which(replacement_valid[candidate_indices])
+        original_idx <- failed[group_idx]
+        
+        if (length(valid_positions) > 0L) {
+          first_valid <- valid_positions[1]
+          replacement_idx <- candidate_indices[first_valid]
+          
+          randomized[original_idx] <- replacements[replacement_idx]
+          valid[original_idx] <- TRUE
+          
+          # count attempts only through the first successful proposal
+          attempts[original_idx] <- attempts[original_idx] +
+            first_valid
+        } else {
+          attempts[original_idx] <- attempts[original_idx] +
+            batch_sizes[group_idx]
+        }
       }
     }
     
