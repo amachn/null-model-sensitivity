@@ -20,7 +20,7 @@ def format_runtime(result: AnalysisResult | FactorialResult) -> str:
     if result.runtime_seconds <= 60:
         return f"{result.runtime_seconds:.2f} s"
 
-    return f"{result.runtime_seconds:.2f} s ({result.runtime_minutes:.2f}"
+    return f"{result.runtime_seconds:.2f} s ({result.runtime_minutes:.2f} min)"
 
 
 def print_analysis_result(result: AnalysisResult) -> None:
