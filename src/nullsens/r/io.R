@@ -32,7 +32,7 @@ find_column <- function(data, candidates) {
 read_tabular <- function(path, header = TRUE) {
   extension <- get_file_extension(path)
   
-  if (extension %in% c("xlsx", "xlsx")) {
+  if (extension %in% c("xlsx", "xls")) {
     if (!requireNamespace("readxl", quietly = TRUE)) {
       stop("Package 'readxl' is required to read Excel files: ", path)
     }
