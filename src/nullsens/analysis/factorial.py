@@ -2,6 +2,7 @@
 # - generates and runs factorial null-model configurations
 
 # libraries
+from collections.abc import Callable
 from dataclasses import replace
 
 # project imports
@@ -26,6 +27,8 @@ FACTORIAL_DESIGN = (
     FactorialCondition("all_three",             mappability=True,  gc=True,  chromatin=True),
 )
 
+ProgressCallback = Callable[[int, int, FactorialCondition], None]
+
 
 # build a NullConfig matching the current factorial condition
 def build_factorial_null(template: NullConfig, condition: FactorialCondition) -> NullConfig:
@@ -37,10 +40,14 @@ def build_factorial_null(template: NullConfig, condition: FactorialCondition) ->
 
 
 # run all eight combinations
-def run_factorial(request: AnalysisRequest) -> FactorialResult:
+def run_factorial(request: AnalysisRequest, progress: ProgressCallback | None = None) -> FactorialResult:
     runs = []
+    total = len(FACTORIAL_DESIGN)
 
-    for condition in FACTORIAL_DESIGN:
+    for idx, condition in enumerate(FACTORIAL_DESIGN, start=1):
+        if progress is not None:
+            progress(idx, total, condition)
+
         null_config = build_factorial_null(request.null, condition)
         request = replace(request, null=null_config) # preserve other analysis settings
 

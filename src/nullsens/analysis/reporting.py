@@ -2,7 +2,7 @@
 # - formats and displays analysis results
 
 # project imports
-from nullsens.analysis.models import AnalysisResult, FactorialResult
+from nullsens.analysis.models import AnalysisResult, FactorialCondition, FactorialResult
 
 FACTORIAL_LABELS = {
     "baseline": "Baseline",
@@ -33,6 +33,11 @@ def print_analysis_result(result: AnalysisResult) -> None:
     print(f"Z-score: {result.z_score:.4f}")
     print(f"P-value: {result.p_value:.6g}")
     print(f"Runtime: {format_runtime(result)}")
+
+
+def print_factorial_progress(idx: int, total: int, condition: FactorialCondition) -> None:
+    label = FACTORIAL_LABELS.get(condition.label, condition.label)
+    print(f"[{idx}/{total}] Running {label}...", flush=True)
 
 
 def print_factorial_result(factorial: FactorialResult) -> None:
@@ -69,7 +74,7 @@ def print_factorial_result(factorial: FactorialResult) -> None:
 
     # output each row of the table left justified by the width of each column
     def format_row(row):
-        return " ".join(value.ljust(widths[index]) for index, value in enumerate(row))
+        return " ".join(value.ljust(widths[idx]) for idx, value in enumerate(row))
 
     print(format_row(headers))
     print("-" * sum(widths, len(headers) - 1))

@@ -14,7 +14,7 @@ from nullsens.analysis.models import (
     NullConfig,
     ReferenceFiles,
 )
-from nullsens.analysis.reporting import print_analysis_result, print_factorial_result
+from nullsens.analysis.reporting import print_analysis_result, print_factorial_progress, print_factorial_result
 from nullsens.analysis.runner import run_analysis
 
 # - helpers -
@@ -114,6 +114,7 @@ def analyze_command(args):
     request = build_analysis_request(args)
 
     try:
+        print("Running analysis...")
         result = run_analysis(request)
     except (FileNotFoundError, RuntimeError, ValueError) as ex:
         print(f"Error: {ex}")
@@ -127,7 +128,7 @@ def factorial_command(args):
     request = build_analysis_request(args)
 
     try:
-        result = run_factorial(request)
+        result = run_factorial(request, progress=print_factorial_progress)
     except (FileNotFoundError, RuntimeError, ValueError) as ex:
         print(f"Error: {ex}")
         return
