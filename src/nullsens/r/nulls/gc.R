@@ -98,19 +98,31 @@ gc_content <- function(context, regions) {
   list(gc = gc, n_frac = n_frac)
 }
 
-validate_gc <- function(context, original, candidate) {
+validate_gc <- function(context, original, candidate, original_gc = NULL) {
   if (length(original) != length(candidate)) {
     stop("validate_gc: original and candidate must have the same length and order.")
   }
 
-  orig <- gc_content(context, original)
-  cand <- gc_content(context, candidate)
+  # calculate original GC only when it wasn't precomputed
+  if (is.null(original_gc)){
+    original_gc <- gc_content(context, original)$gc
+  }
 
-  valid <- abs(cand$gc - orig$gc) <= context$tolerance & cand$n_frac <= context$max_n
+  if (length(original_gc) != length(original)) {
+    stop("validate_gc: original_gc must contain one value per original region.")
+  }
+  
+  # candidate sequence changes every proposal, so this still needs calculation
+  candidate_content <- gc_content(context, candidate)
+  
+  valid <- (
+    abs(candidate_content$gc - original_gc) <= context$tolerance &
+    candidate_content$n_frac <= context$max_n
+  )
 
   # an original with no called bases has no GC to match; any low-N candidate is fine
-  no_gc <- is.na(orig$gc)
-  valid[no_gc] <- cand$n_frac[no_gc] <= context$max_n
+  no_gc <- is.na(original_gc)
+  valid[no_gc] <- candidate_content$n_frac[no_gc] <= context$max_n
 
   valid[is.na(valid)] <- FALSE
   valid
