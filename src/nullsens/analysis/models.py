@@ -108,7 +108,11 @@ class FactorialResult:
         return [run for run in self.runs if run.succeeded]
 
     @property
-    def total_runtime_seconds(self) -> float:
+    def failed_runs(self) -> list[FactorialRunResult]:
+        return [run for run in self.runs if not run.succeeded]
+
+    @property
+    def runtime_seconds(self) -> float:
         return sum(
             run.result.runtime_seconds
             for run in self.successful_runs
@@ -116,5 +120,5 @@ class FactorialResult:
         )
 
     @property
-    def total_runtime_minutes(self) -> float:
-        return self.total_runtime_seconds / 60.0
+    def runtime_minutes(self) -> float:
+        return self.runtime_seconds / 60.0
