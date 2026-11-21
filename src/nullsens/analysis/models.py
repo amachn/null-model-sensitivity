@@ -9,7 +9,7 @@ from pathlib import Path
 @dataclass
 class ChromatinConfig:
     enabled: bool = False
-    padding: int | None = None
+    padding: int = 0
     label_col: str | None = None
     priority: list[str] | None = None
     strict: bool = False

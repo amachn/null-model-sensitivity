@@ -33,7 +33,7 @@ read_ccre <- function(path, class_col = 10L) {
 
 # prepare mutually exclusive chromatin-state regions
 prepare_chromatin <- function(
-  chromatin_bed, genome, padding = 2000L, label_col = NULL, priority = NULL
+  chromatin_bed, genome, padding = 0L, label_col = NULL, priority = NULL
 ) {
   if (is.null(chromatin_bed) || !file.exists(chromatin_bed)) {
     stop("Chromatin reference not found: ", chromatin_bed)
