@@ -116,40 +116,11 @@ build_randomizer <- function(
       max_n     = config$gc$max_n
     )
     
-    # original regions never change between permutations, so calculate
-    # their GC content only one time
-    gc_original_content <- gc_content(gc_context, regions)
-    
-    # validators don't always receive the full original region set
-    # - may receive only A[failed], and batched retries can contain multiple
-    #   copies of the same original region
-    # - this creates a stable key for each prepared region so those 
-    #   subsets/copies can be mapped back
-    gc_original_keys <- paste(
-      as.character(GenomicRanges::seqnames(regions)),
-      GenomicRanges::start(regions),
-      GenomicRanges::end(regions),
-      sep = ":"
-    )
-    
     validators$gc <- function(original, candidate) {
-      # build the same coordinate-based keys for the original regions in this
-      # particular validation call
-      original_keys <- paste(
-        as.character(GenomicRanges::seqnames(original)),
-        GenomicRanges::start(original),
-        GenomicRanges::end(original),
-        sep = ":"
-      )
-      
-      # map each region back to its position in the complete original set
-      original_indices <- match(original_keys, gc_original_keys)
-      
       validate_gc(
-        context     = gc_context, 
-        original    = original,
-        candidate   = candidate,
-        original_gc = gc_original_content$gc[original_indices]
+        context   = gc_context, 
+        original  = original,
+        candidate = candidate
       )
     }
   }
