@@ -127,7 +127,11 @@ as_genome_gr <- function(genome) {
   genome_gr <- if (methods::is(genome, "GRanges")) {
     genome 
   } else {
-    regioneR::getGenome(genome)
+    suppressWarnings(
+      suppressMessages(
+        regioneR::getGenome(genome)
+      )
+    )
   }
   
   GenomicRanges::strand(genome_gr) <- "*"

@@ -25,7 +25,11 @@ prepare_gc <- function(genome, tolerance = 0.02, flank = 0L, max_n = 0.1) {
       stop("GC matching requires the BSgenome package.")
     }
     tryCatch(
-      BSgenome::getBSgenome(genome, masked = FALSE),
+      suppressWarnings(
+        suppressMessages(
+          BSgenome::getBSgenome(genome, masked = FALSE)
+        )
+      ),
       error = function(err) {
         stop(
           "GC matching could not load a BSgenome for '", genome, "'.\n",
