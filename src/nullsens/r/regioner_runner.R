@@ -46,6 +46,21 @@ randomize_function <- build_randomizer(
   max_attempts = config$max_attempts
 )
 
+guarded_randomize_function <- function(A, ...) {
+  tryCatch(
+    randomize_function(A, ...),
+    error = function(err) {
+      message(
+        "NULLSENS RANDOMIZER ERROR [PID ",
+        Sys.getpid(),
+        "]: ",
+        conditionMessage(err)
+      )
+      stop(err)
+    }
+  )
+}
+
 # run one enrichment test
 backend_output <- capture.output({
   test <- regioneR::permTest(
@@ -53,7 +68,7 @@ backend_output <- capture.output({
     B                  = regions_b,
     ntimes             = config$permutations,
     genome             = genome_gr,
-    randomize.function = randomize_function,
+    randomize.function = guarded_randomize_function,
     evaluate.function  = regioneR::numOverlaps,
     force.parallel     = config$cores > 1L,
     mc.cores           = config$cores,
