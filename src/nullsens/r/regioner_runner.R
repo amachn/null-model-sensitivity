@@ -36,6 +36,7 @@ if (!is.null(config$seed)) {
 
 # timing - start
 analysis_start <- proc.time()[["elapsed"]]
+build_start <- proc.time()[["elapsed"]]
 
 # build requested null model
 randomize_function <- build_randomizer(
@@ -46,6 +47,9 @@ randomize_function <- build_randomizer(
   max_attempts = config$max_attempts
 )
 
+build_seconds <- proc.time()[["elapsed"]] - build_start
+
+# preserve the original failure before regioneR produces secondary errors
 guarded_randomize_function <- function(A, ...) {
   tryCatch(
     randomize_function(A, ...),
@@ -62,6 +66,8 @@ guarded_randomize_function <- function(A, ...) {
 }
 
 # run one enrichment test
+perm_start <- proc.time()[["elapsed"]]
+
 backend_output <- capture.output({
   test <- regioneR::permTest(
     A                  = regions_a,
@@ -78,7 +84,17 @@ backend_output <- capture.output({
 })
 
 # timing - end
+perm_seconds <- proc.time()[["elapsed"]] - perm_start
 runtime_seconds <- proc.time()[["elapsed"]] - analysis_start
+
+# diagnostics output
+if (isTRUE(config$diagnostics)) {
+  message("DIAGNOSTICS cores = ", config$cores)
+  message("DIAGNOSTICS force.parallel = ", config$cores > 1L)
+  message("DIAGNOSTICS detectCores = ", parallel::detectCores())
+  message(sprintf("DIAGNOSTICS build_randomizer: %.2f s", build_seconds))
+  message(sprintf("DIAGNOSTICS perm_test: %.2f s", perm_seconds))
+}
 
 # write errors to stderr
 if (length(backend_output) > 0) { writeLines(backend_output, con = stderr()) }
