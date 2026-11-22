@@ -101,6 +101,7 @@ def build_analysis_request(args) -> AnalysisRequest:
         regions_a=args.regions_a,
         regions_b=args.regions_b,
         genome=args.genome,
+        cores=args.cores,
         permutations=args.permutations,
         max_attempts=args.max_attempts,
         seed=args.seed,
