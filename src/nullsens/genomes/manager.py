@@ -10,6 +10,9 @@ from nullsens.paths import PACKAGE_PATHS
 
 RSCRIPT = find_rscript()
 
+PACKAGE_SENTINEL = "NULLSENS_PACKAGE"
+GENOME_SENTINEL = "NULLSENS_GENOME"
+
 # - genome queries -
 
 # query installed or available BSgenome packages for a genome
@@ -25,7 +28,12 @@ def _query_genomes(genome: str, installed: bool) -> list[str]:
             matches <- genomes$pkgname[genomes$genome == genome & !genomes$masked]
         }};
         
-        cat(as.character(matches), sep = "\\n");
+        if (length(matches) > 0) {{
+            cat(
+                paste("{PACKAGE_SENTINEL}", as.character(matches), sep = "\\t"),
+                sep = "\\n"
+            );
+        }};
     """.replace("\n", "")
 
     completed = subprocess.run(
@@ -35,7 +43,23 @@ def _query_genomes(genome: str, installed: bool) -> list[str]:
     if completed.returncode != 0:
         raise RuntimeError(f"Failed to query BSgenome packages:\n{completed.stderr}")
 
-    return [line for line in completed.stdout.splitlines() if line.strip()]
+    matches = []
+
+    for line in completed.stdout.splitlines():
+        parts = line.strip().split("\t", 1)
+
+        if len(parts) != 2:
+            continue
+
+        sentinel, package = parts
+
+        if sentinel != PACKAGE_SENTINEL:
+            continue
+
+        if package:
+            matches.append(package)
+
+    return matches
 
 
 # resolve a genome assembly or package name to an available BSgenome package
@@ -72,11 +96,19 @@ def is_genome_installed(genome: str) -> bool:
 
 # list BSgenome packages installed in the nullsens R environment
 def get_installed_genomes() -> list[tuple[str, str]]:
-    expression = """
+    expression = f"""
         genomes <- BSgenome::installed.genomes(splitNameParts = TRUE);
-        if (nrow(genomes) > 0) {
-            cat(paste(genomes$genome, genomes$pkgname, sep = "\\t"), sep = "\\n")  
-        };
+        if (nrow(genomes) > 0) {{
+            cat(
+                paste(
+                    "{GENOME_SENTINEL}",
+                    genomes$genome,
+                    genomes$pkgname,
+                    sep = "\\t"
+                ),
+                sep = "\\n"
+            );  
+        }};
     """.replace("\n", "")
 
     completed = subprocess.run(
@@ -88,10 +120,19 @@ def get_installed_genomes() -> list[tuple[str, str]]:
 
     genomes = []
     for line in completed.stdout.splitlines():
-        if not line.strip():
+        parts = line.strip().split("\t", 2)
+
+        if len(parts) != 3:
             continue
 
-        genome, package = line.split("\t", 1)
+        sentinel, genome, package = parts
+
+        if sentinel != GENOME_SENTINEL:
+            continue
+
+        if not genome or not package:
+            continue
+
         genomes.append((genome, package))
 
     return genomes
