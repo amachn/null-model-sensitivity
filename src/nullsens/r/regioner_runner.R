@@ -30,6 +30,7 @@ regions_b <- conform_regions(import_regions(config$regions_b), genome_gr)
 
 # configure reproducibility
 if (!is.null(config$seed)) {
+  RNGkind("L'Ecuyer-CMRG")
   set.seed(config$seed)
 }
 
@@ -56,7 +57,7 @@ backend_output <- capture.output({
     evaluate.function  = regioneR::numOverlaps,
     force.parallel     = config$cores > 1L,
     mc.cores           = config$cores,
-    mc.set.seed        = FALSE,
+    mc.set.seed        = TRUE,
     verbose            = FALSE
   )
 })
