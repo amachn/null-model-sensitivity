@@ -252,6 +252,8 @@ build_randomizer <- function(
     # -----
     while(any(!valid)) {
       failed <- which(!valid)
+      
+      # number of attempts each failed region still has available
       remaining <- max_attempts - attempts[failed]
       
       # stop before making another proposal for regions that have already 
@@ -293,7 +295,6 @@ build_randomizer <- function(
       
       # repeat each failed original region batch_sizes[i] times
       source_indices <- rep(failed, times = batch_sizes)
-      batch_groups <- rep(seq_along(failed), times = batch_sizes)
       batch_original <- A[source_indices]
       
       # generate all retry candidates in one proposal call
@@ -307,26 +308,49 @@ build_randomizer <- function(
         validators = validators
       )
       
-      # for each failed region, accept the first valid proposal
+      # collect successful mappings first instead of modifying the randomized
+      # GRanges once per accepted region
+      accepted_original <- integer(length(failed))
+      accepted_replacement <- integer(length(failed))
+      attempt_increments <- integer(length(failed))
+      
+      n_accepted <- 0L
+      offset <- 0L
+      
       for (group_idx in seq_along(failed)) {
-        candidate_indices <- which(batch_groups == group_idx)
+        batch_size <- batch_sizes[group_idx]
+        
+        # candidates belonging to this one original region
+        candidate_indices <- seq.int(offset + 1L, offset + batch_size)
+        offset <- offset + batch_size
+        
         valid_positions <- which(replacement_valid[candidate_indices])
-        original_idx <- failed[group_idx]
         
         if (length(valid_positions) > 0L) {
+          # rejection sampling stops at the first successful proposal
           first_valid <- valid_positions[1]
-          replacement_idx <- candidate_indices[first_valid]
+          n_accepted <- n_accepted + 1L
           
-          randomized[original_idx] <- replacements[replacement_idx]
-          valid[original_idx] <- TRUE
-          
-          # count attempts only through the first successful proposal
-          attempts[original_idx] <- attempts[original_idx] +
-            first_valid
+          accepted_original[n_accepted] <- failed[group_idx]
+          accepted_replacement[n_accepted] <- candidate_indices[first_valid]
+          attempt_increments[group_idx] <- first_valid
         } else {
-          attempts[original_idx] <- attempts[original_idx] +
-            batch_sizes[group_idx]
+          # every proposal in this batch failed
+          attempt_increments[group_idx] <- batch_size
         }
+      }
+      
+      # update attempt counts in one vectorized operation
+      attempts[failed] <- attempts[failed] + attempt_increments
+      
+      # perform one GRanges replacement for all successes in this retry cycle
+      if (n_accepted > 0L) {
+        accepted_indices <- seq_len(n_accepted)
+        original_indices <- accepted_original[accepted_indices]
+        replacement_indices <- accepted_replacement[accepted_indices]
+        
+        randomized[original_indices] <- replacements[replacement_indices]
+        valid[original_indices] <- TRUE
       }
     }
     
