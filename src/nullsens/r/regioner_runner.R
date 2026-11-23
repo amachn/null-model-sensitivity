@@ -1,16 +1,31 @@
 # ~~~ src/nullsens/r/regioner_runner.R ~~~
 # - R backend entry point that runs the full process of:
 #   - input -> data loading -> randomization -> permutation -> output
-suppressPackageStartupMessages({
-  library(jsonlite)
-  library(regioneR)
-  library(rtracklayer)
-  library(Biostrings)
-  library(GenomeInfoDb)
-  library(GenomicRanges)
-  library(IRanges)
-  library(S4Vectors)
-})
+
+# suppress a known harmless Bioconductor warning while preserving all others
+withCallingHandlers(
+  suppressPackageStartupMessages({
+    library(jsonlite)
+    library(regioneR)
+    library(rtracklayer)
+    library(Biostrings)
+    library(GenomeInfoDb)
+    library(GenomicRanges)
+    library(IRanges)
+    library(S4Vectors)
+  }),
+  warning = function(w) {
+    message <- conditionMessage(w)
+    
+    if (
+      grepl("replacing previous import", message, fixed = TRUE) &&
+      grepl("makeNindexFromArrayViewport", message, fixed = TRUE) &&
+      grepl("SummarizedExperiment", message, fixed = TRUE)
+    ) {
+      invokeRestart("muffleWarning")
+    }
+  }
+)
 
 source("io.R")
 
