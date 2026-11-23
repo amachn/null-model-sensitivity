@@ -154,9 +154,9 @@ build_randomizer <- function(
     }
   }
   
-  # ----
-  # 4 -> prepare chromatin-context matching
-  # ----
+  # -----
+  # 4A -> prepare chromatin-context matching
+  # -----
   # like gc, chromatin depends on the corresponding original interval, so it
   # is also represented by a validator rather than a static mask.
   if (isTRUE(config$chromatin$enabled)) {
@@ -180,23 +180,29 @@ build_randomizer <- function(
         strict    = isTRUE(config$chromatin$strict)
       )
     }
-    
-    # propose_chromatin() doesn't understand regioneR masks - thus, when
-    # mappability + chromatin are both enabled, mappability must move from
-    # proposal-time enforcement to post-proposal validation
-    if (!is.null(mappability_context)) {
-      validators$mappability <- function(original, candidate) {
-        validate_mappability(
-          context   = mappability_context,
-          original  = original,
-          candidate = candidate
-        )
-      }
-      
-      # the chromatin proposer will be used instead of randomizeRegions(),
-      # so this static mask is no longer used
-      proposal_mask <- NA
+  }
+  
+  # -----
+  # 4B -> choose how mappability is enforced
+  # -----
+  # mappability alone can be enforced directly by regioneR as a static mask.
+  # - when another region-specific validator is active, however, candidates
+  #   must preserve their index correspondence with the original regions
+  # - masked randomizeRegions() preserves the set of widths but may reorder
+  #   them, which breaks GC/chromatin matching
+  # - in those combinations, enforce mappability as a validator instead
+  if (!is.null(mappability_context) & length(validators) > 0L) {
+    validators$mappability <- function(original, candidate) {
+      validate_mappability(
+        context   = mappability_context,
+        original  = original,
+        candidate = candidate
+      )
     }
+    
+    # propose without the static mask; rejected candidates will instead be
+    # resampled until they satisfy the mappability constraint
+    proposal_mask <- NA
   }
   
   # ----
