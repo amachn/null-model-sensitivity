@@ -64,7 +64,7 @@ validate_randomization <- function(original, randomized) {
 #   - future impls may use it to precompute original-region properties once
 #     rather than repeatedly
 build_randomizer <- function(
-  config, refs, regions, genome, max_attempts = 100L
+  config, refs, regions, genome, max_attempts = 10000L
 ) {
   if (max_attempts < 1L) { stop("max_attempts must be an integer >= 1.") }
   
