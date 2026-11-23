@@ -135,9 +135,9 @@ propose_chromatin <- function(context, regions) {
     
     if (any(too_short)) {
       for (position in which(too_short)) {
-        position_width <- widths[indices[position]]
+        region_width <- widths[indices[position]]
         
-        eligible <- width(
+        eligible <- which(
           !is.na(pool_chromosome_lengths) &
           pool_chromosome_lengths >= region_width
         )
