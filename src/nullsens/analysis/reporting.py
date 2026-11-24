@@ -45,6 +45,24 @@ CSV_FIELDS = (
     "error",
 )
 
+FACTORIAL_EFFECT_FIELDS = (
+    "response",
+    "term",
+    "order",
+    "effect",
+    "absolute_effect",
+)
+
+FACTORIAL_EFFECT_TERMS = (
+    ("mappability", ("mappability", )),
+    ("gc", ("gc", )),
+    ("chromatin", ("chromatin", )),
+    ("mappability:gc", ("mappability", "gc")),
+    ("mappability:chromatin", ("mappability", "chromatin")),
+    ("gc:chromatin", ("gc", "chromatin")),
+    ("mappability:gc:chromatin", ("mappability", "gc", "chromatin")),
+)
+
 # - output helpers -
 
 # JSON doesn't support NaN/Inf when strict output is requested
@@ -137,6 +155,67 @@ def _csv_row(
     }
 
 
+def calculate_factorial_effects(factorial: FactorialResult) -> list[dict] | None:
+    # all 8 successful cells are required for factorial contrasts
+    if len(factorial.runs) != 8 or factorial.failed_runs:
+        return None
+
+    cells = []
+
+    for run in factorial.runs:
+        result = run.result
+
+        if result is None:
+            return None
+
+        cells.append((run.condition, result.log2_fold_change))
+
+    # ensure the full 2^3 design is represented exactly once
+    conditions = {
+        (condition.mappability, condition.gc, condition.chromatin) for condition, _ in cells
+    }
+
+    if len(conditions) != 8:
+        return None
+
+    effects = []
+
+    for term, factors in FACTORIAL_EFFECT_TERMS:
+        positive = []
+        negative = []
+
+        for condition, response in cells:
+            levels = {
+                "mappability": condition.mappability,
+                "gc": condition.gc,
+                "chromatin": condition.chromatin,
+            }
+
+            sign = 1
+            for factor in factors:
+                sign *= 1 if levels[factor] else -1
+
+            if sign > 0:
+                positive.append(response)
+            else:
+                negative.append(response)
+
+        effect = (
+                sum(positive) / len(positive)
+                - sum(negative) / len(negative)
+        )
+
+        effects.append({
+            "response": "log2_fold_change",
+            "term": term,
+            "order": len(factors),
+            "effect": effect,
+            "absolute_effect": abs(effect),
+        })
+
+    return effects
+
+
 def _write_csv(path: Path, rows: list[dict]) -> None:
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=CSV_FIELDS)
@@ -148,6 +227,13 @@ def _write_json(path: Path, payload: dict) -> None:
     with path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, allow_nan=False)
         handle.write("\n")
+
+
+def _write_factorial_effects_csv(path: Path, effects: list[dict]) -> None:
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=FACTORIAL_EFFECT_FIELDS)
+        writer.writeheader()
+        writer.writerows(effects)
 
 
 # - public output writers -
@@ -188,15 +274,21 @@ def write_analysis_outputs(prefix: Path, request: AnalysisRequest, result: Analy
     return json_path, csv_path
 
 
-def write_factorial_outputs(prefix: Path, request: AnalysisRequest, factorial: FactorialResult) -> tuple[Path, Path]:
+def write_factorial_outputs(
+    prefix: Path,
+    request: AnalysisRequest,
+    factorial: FactorialResult
+) -> tuple[Path, Path, Path | None]:
     prefix = _normalize_output_prefix(prefix)
 
     json_path = prefix.with_suffix(".json")
     csv_path = prefix.with_suffix(".csv")
+    effects_path = prefix.with_suffix(".effects.csv")
 
     runs = []
     rows = []
 
+    # build normal per-condition JSON + CSV data
     for run in factorial.runs:
         condition = run.condition
 
@@ -224,16 +316,30 @@ def write_factorial_outputs(prefix: Path, request: AnalysisRequest, factorial: F
             error=run.error,
         ))
 
+    # calculate derived factorial contrasts
+    effects = calculate_factorial_effects(factorial)
+
+    # full archival JSON
     payload = {
         "analysis_type": "factorial",
         "request": request.to_dict(),
         "total_runtime_seconds": _clean_number(factorial.runtime_seconds),
+        "effects": effects,
         "runs": runs,
     }
 
+    # always write normal outputs
     _write_json(json_path, payload)
     _write_csv(csv_path, rows)
-    return json_path, csv_path
+
+    # effects require a successful 2^3 factorial
+    written_effects_path = None
+
+    if effects is not None:
+        _write_factorial_effects_csv(effects_path, effects)
+        written_effects_path = effects_path
+
+    return json_path, csv_path, written_effects_path
 
 
 # - terminal formatting -

@@ -158,13 +158,17 @@ def factorial_command(args):
 
     if args.output_prefix is not None:
         try:
-            json_path, csv_path = write_factorial_outputs(args.output_prefix, request, result)
+            json_path, csv_path, effects_path = write_factorial_outputs(args.output_prefix, request, result)
         except OSError as ex:
             print(f"\nError writing results: {ex}")
             return
 
         print(f"\nJSON result: {json_path}")
         print(f"CSV result: {csv_path}")
+
+        if effects_path is not None:
+            print(f"Factorial effects: {effects_path}")
+
 
 # - CLI registration -
 def register_analysis_commands(subparsers):
