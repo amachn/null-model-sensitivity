@@ -1,8 +1,14 @@
 # src/nullsens/analysis/reporting.py
-# - formats and displays analysis results
+# - formats, displays, and writes analysis results
+
+# libraries
+from pathlib import Path
+import csv
+import json
+import math
 
 # project imports
-from nullsens.analysis.models import AnalysisResult, FactorialCondition, FactorialResult
+from nullsens.analysis.models import AnalysisRequest, AnalysisResult, FactorialCondition, FactorialResult
 
 FACTORIAL_LABELS = {
     "baseline": "Baseline",
@@ -15,7 +21,222 @@ FACTORIAL_LABELS = {
     "all_three": "All",
 }
 
+CSV_FIELDS = (
+    "analysis_type",
+    "null_model",
+    "null_model_label",
+    "status",
+    "mappability",
+    "gc",
+    "chromatin",
+    "n_regions",
+    "observed",
+    "expected",
+    "null_sd",
+    "log2_fold_change",
+    "z_score",
+    "p_value",
+    "genome",
+    "permutations",
+    "seed",
+    "cores",
+    "max_attempts",
+    "runtime_seconds",
+    "error",
+)
 
+# - output helpers -
+
+# JSON doesn't support NaN/Inf when strict output is requested
+def _clean_number(value):
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+
+    return value
+
+
+# normalize the user-provided output prefix and create its parent directory
+def _normalize_output_prefix(prefix: Path) -> Path:
+    prefix = Path(prefix)
+
+    if prefix.suffix.lower() in {".json", ".csv"}:
+        prefix = prefix.with_suffix("")
+
+    prefix.parent.mkdir(parents=True, exist_ok=True)
+
+    return prefix
+
+
+# derive the internal null-model key for a single analysis
+def _null_model_key(mappability: bool, gc: bool, chromatin: bool) -> str:
+    enabled = []
+
+    if mappability:
+        enabled.append("mappability")
+
+    if gc:
+        enabled.append("gc")
+
+    if chromatin:
+        enabled.append("chromatin")
+
+    if not enabled:
+        return "baseline"
+
+    if len(enabled) == 3:
+        return "all_three"
+
+    return "_".join(enabled)
+
+
+# convert one successful analysis result into JSON-safe data
+def _analysis_result_dict(result: AnalysisResult) -> dict:
+    return {
+        "n_peaks": result.n_peaks,
+        "observed": _clean_number(result.observed),
+        "permutation_values": [_clean_number(value) for value in result.permutation_values],
+        "null_mean": _clean_number(result.null_mean),
+        "null_sd": _clean_number(result.null_sd),
+        "log2_fold_change": _clean_number(result.log2_fold_change),
+        "z_score": _clean_number(result.z_score),
+        "p_value": _clean_number(result.p_value),
+        "runtime_seconds": _clean_number(result.runtime_seconds),
+    }
+
+
+# construct one summary row for CSV output
+def _csv_row(
+    request: AnalysisRequest, *, analysis_type: str, null_model: str,
+    mappability: bool, gc: bool, chromatin: bool,
+    result: AnalysisResult | None, error: str | None = None
+) -> dict:
+    label = FACTORIAL_LABELS.get(null_model, null_model)
+
+    return {
+        "analysis_type": analysis_type,
+        "null_model": null_model,
+        "null_model_label": label,
+        "status": "success" if result is not None else "failed",
+        "mappability": mappability,
+        "gc": gc,
+        "chromatin": chromatin,
+        "n_regions": result.n_peaks if result is not None else None,
+        "observed": _clean_number(result.observed) if result is not None else None,
+        "expected": _clean_number(result.null_mean) if result is not None else None,
+        "null_sd": _clean_number(result.null_sd) if result is not None else None,
+        "log2_fold_change": _clean_number(result.log2_fold_change) if result is not None else None,
+        "z_score": _clean_number(result.z_score) if result is not None else None,
+        "p_value": _clean_number(result.p_value) if result is not None else None,
+        "genome": request.genome,
+        "permutations": request.permutations,
+        "seed": request.seed,
+        "cores": request.cores,
+        "max_attempts": request.max_attempts,
+        "runtime_seconds": _clean_number(result.runtime_seconds) if result is not None else None,
+        "error": error,
+    }
+
+
+def _write_csv(path: Path, rows: list[dict]) -> None:
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=CSV_FIELDS)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def _write_json(path: Path, payload: dict) -> None:
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, allow_nan=False)
+        handle.write("\n")
+
+
+# - public output writers -
+def write_analysis_outputs(prefix: Path, request: AnalysisRequest, result: AnalysisResult) -> tuple[Path, Path]:
+    prefix = _normalize_output_prefix(prefix)
+
+    json_path = prefix.with_suffix(".json")
+    csv_path = prefix.with_suffix(".csv")
+
+    null_model = _null_model_key(
+        request.null.mappability.enabled,
+        request.null.gc.enabled,
+        request.null.chromatin.enabled,
+    )
+
+    payload = {
+        "analysis_type": "analyze",
+        "request": request.to_dict(),
+        "null_model": {
+            "key": null_model,
+            "label": FACTORIAL_LABELS.get(null_model, null_model),
+        },
+        "result": _analysis_result_dict(result),
+    }
+
+    row = _csv_row(
+        request,
+        analysis_type="analyze",
+        null_model=null_model,
+        mappability=request.null.mappability.enabled,
+        gc=request.null.gc.enabled,
+        chromatin=request.null.chromatin.enabled,
+        result=result,
+    )
+
+    _write_json(json_path, payload)
+    _write_csv(csv_path, [row])
+    return json_path, csv_path
+
+
+def write_factorial_outputs(prefix: Path, request: AnalysisRequest, factorial: FactorialResult) -> tuple[Path, Path]:
+    prefix = _normalize_output_prefix(prefix)
+
+    json_path = prefix.with_suffix(".json")
+    csv_path = prefix.with_suffix(".csv")
+
+    runs = []
+    rows = []
+
+    for run in factorial.runs:
+        condition = run.condition
+
+        runs.append({
+            "condition": {
+                "key": condition.label,
+                "label": FACTORIAL_LABELS.get(condition.label, condition.label),
+                "mappability": condition.mappability,
+                "gc": condition.gc,
+                "chromatin": condition.chromatin,
+            },
+            "status": "success" if run.succeeded else "failed",
+            "error": run.error,
+            "result": _analysis_result_dict(run.result) if run.result is not None else None,
+        })
+
+        rows.append(_csv_row(
+            request,
+            analysis_type="factorial",
+            null_model=condition.label,
+            mappability=condition.mappability,
+            gc=condition.gc,
+            chromatin=condition.chromatin,
+            result=run.result,
+            error=run.error,
+        ))
+
+    payload = {
+        "analysis_type": "factorial",
+        "request": request.to_dict(),
+        "total_runtime_seconds": _clean_number(factorial.runtime_seconds),
+        "runs": runs,
+    }
+
+    _write_json(json_path, payload)
+    _write_csv(csv_path, rows)
+    return json_path, csv_path
+
+
+# - terminal formatting -
 def format_runtime(result: AnalysisResult | FactorialResult) -> str:
     if result.runtime_seconds <= 60:
         return f"{result.runtime_seconds:.2f} s"
@@ -56,6 +277,8 @@ def print_factorial_result(factorial: FactorialResult) -> None:
             continue
 
         result = run.result
+        assert result is not None
+
         rows.append((
             label,
             str(result.n_peaks),
@@ -88,4 +311,5 @@ def print_factorial_result(factorial: FactorialResult) -> None:
 
         for run in factorial.failed_runs:
             label = FACTORIAL_LABELS.get(run.condition.label, run.condition.label)
-            print(f"\n{label}: \n{run.error}")
+            error = run.error or "Unknown error"
+            print(f"\n{label}: \n{error}")

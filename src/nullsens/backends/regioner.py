@@ -2,7 +2,6 @@
 # - handles cross-language communication between Python and R, specifically regioneR
 
 # libraries
-from dataclasses import asdict
 import json
 import subprocess
 import sys
@@ -17,20 +16,7 @@ def run_regioner(request: AnalysisRequest) -> AnalysisResult:
     rscript = find_rscript()
     runner = PACKAGE_PATHS.r / "regioner_runner.R"
 
-    payload = {
-        "regions_a": str(request.regions_a.resolve()),
-        "regions_b": str(request.regions_b.resolve()),
-        "genome": request.genome,
-        "cores": request.cores,
-        "permutations": request.permutations,
-        "max_attempts": request.max_attempts,
-        "seed": request.seed,
-        "null": {name: value for name, value in asdict(request.null).items()},
-        "references": {
-            name: (str(path.resolve()) if path else None)
-            for name, path in asdict(request.references).items()
-        },
-    }
+    payload = request.to_dict()
 
     # this method relies on us using "cat" for the actual output and "message" for diagnostics in R
     completed = subprocess.run(
