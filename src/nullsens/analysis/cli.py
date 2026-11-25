@@ -29,8 +29,9 @@ def add_analysis_arguments(parser, enable_flags: bool) -> None:
     # general analysis options
     parser.add_argument("--cores", type=int, default=1, help="Number of cores to use (default: 1)")
     parser.add_argument("--permutations", type=int, default=1000, help="Number of permutations (default: 1000)")
-    parser.add_argument("--max-attempts", type=int, default=100, help="Maximum placement attempts (default: 100)")
+    parser.add_argument("--max-attempts", type=int, default=10000, help="Maximum placement attempts (default: 10000)")
     parser.add_argument("--seed", type=int, help="Optional random seed")
+    parser.add_argument("--diagnostics", action="store_true", help="Print backend timing + parallel-exec diagnostics")
 
     # mappability masking
     if enable_flags:
@@ -101,9 +102,11 @@ def build_analysis_request(args) -> AnalysisRequest:
         regions_a=args.regions_a,
         regions_b=args.regions_b,
         genome=args.genome,
+        cores=args.cores,
         permutations=args.permutations,
         max_attempts=args.max_attempts,
         seed=args.seed,
+        diagnostics=args.diagnostics,
         null=null_config,
         references=references,
     )

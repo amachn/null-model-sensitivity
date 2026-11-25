@@ -5,6 +5,7 @@
 from dataclasses import asdict
 import json
 import subprocess
+import sys
 
 # project imports
 from nullsens.analysis.models import AnalysisRequest, AnalysisResult
@@ -38,6 +39,9 @@ def run_regioner(request: AnalysisRequest) -> AnalysisResult:
 
     if completed.returncode != 0:
         raise RuntimeError(f"regioneR backend failed:\n{completed.stderr}")
+
+    if request.diagnostics and completed.stderr:
+        print(completed.stderr, file=sys.stderr, end="")
 
     result = json.loads(completed.stdout)
     return AnalysisResult(**result)

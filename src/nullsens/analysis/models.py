@@ -54,8 +54,9 @@ class AnalysisRequest:
 
     cores: int = 1
     permutations: int = 1000
-    max_attempts: int = 100
+    max_attempts: int = 10000
     seed: int | None = None
+    diagnostics: bool = False
 
     null: NullConfig = field(default_factory=NullConfig)
     references: ReferenceFiles = field(default_factory=ReferenceFiles)

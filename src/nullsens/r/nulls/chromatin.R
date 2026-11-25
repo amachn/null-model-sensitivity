@@ -120,11 +120,44 @@ propose_chromatin <- function(context, regions) {
       )
     }
     
+    pool_chromosomes <- as.character(GenomicRanges::seqnames(pool))
+    pool_chromosome_lengths <- as.numeric(chromosome_lengths[pool_chromosomes])
+    
     # sample state intervals proportional to their widths
     selected <- sample(
       length(pool), length(indices), 
       replace = TRUE, prob = as.numeric(GenomicRanges::width(pool))
     )
+    
+    # a region can't be placed on a chromosome shorter than itself
+    # - resample those rare proposals from only eligible chromosomes
+    too_short <- (pool_chromosome_lengths[selected] < widths[indices])
+    
+    if (any(too_short)) {
+      for (position in which(too_short)) {
+        region_width <- widths[indices[position]]
+        
+        eligible <- which(
+          !is.na(pool_chromosome_lengths) &
+          pool_chromosome_lengths >= region_width
+        )
+        
+        if (length(eligible) == 0L) {
+          stop(
+            "Chromatin state '",
+            state,
+            "' has no chromosome long enough for a ",
+            region_width,
+            " bp region."
+          )
+        }
+        
+        selected[position] <- sample(
+          eligible, 1L,
+          prob = as.numeric(GenomicRanges::width(pool)[eligible])
+        )
+      }
+    }
     
     midpoint <- (
       GenomicRanges::start(pool)[selected] + 
