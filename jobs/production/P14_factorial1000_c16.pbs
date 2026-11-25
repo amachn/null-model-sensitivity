@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# =======================
+# EDIT THESE FOR EACH JOB
+# =======================
+
+#PBS -N P14_factorial1000_c16
+#PBS -l nodes=1:ppn=16
+#PBS -l walltime=04:00:00
+#PBS -j oe
+#PBS -o outputs/production/P14/P14_factorial1000_c16.out
+
+# ===========
+# ENVIRONMENT
+# ===========
+
+set -euo pipefail
+
+source ~/.nullsens_env
+
+cd "$PBS_O_WORKDIR"
+
+CORES=$(wc -l < "$PBS_NODEFILE")
+
+PERMUTATIONS=1000
+MAX_ATTEMPTS=10000
+SEED=12345
+
+OUTPUT_PREFIX="results/P14/P14_factorial1000_c16"
+
+# =================
+# PRODUCTION CHECKS
+# =================
+
+# refuse to run production analyses from modified tracked code
+if ! git -C "$NULLSENS_ROOT" diff --quiet ||
+   ! git -C "$NULLSENS_ROOT" diff --cached --quiet; then
+    echo "ERROR: Repository contains uncommitted tracked changes."
+    echo "Commit or revert them before running production."
+    exit 1
+fi
+
+# refuse to overwrite an existing production result
+if [[ -e "${OUTPUT_PREFIX}.json" ||
+      -e "${OUTPUT_PREFIX}.csv" ||
+      -e "${OUTPUT_PREFIX}.effects.csv" ]]; then
+    echo "ERROR: Production output already exists:"
+    echo "  $OUTPUT_PREFIX"
+    exit 1
+fi
+
+# ===============
+# JOB INFORMATION
+# ===============
+
+echo "======================================="
+echo "nullsens P14 production factorial"
+echo "======================================="
+echo "Job ID:          ${PBS_JOBID:-unknown}"
+echo "Host:            $(hostname)"
+echo "Working dir:     $(pwd)"
+echo "Allocated cores: $CORES"
+echo "Git branch:      $(git -C "$NULLSENS_ROOT" branch --show-current)"
+echo "Git commit:      $(git -C "$NULLSENS_ROOT" rev-parse HEAD)"
+echo "Git tag:         $(git -C "$NULLSENS_ROOT" describe --tags --exact-match HEAD 2>/dev/null || echo none)"
+echo "Python:          $(python --version 2>&1)"
+echo "R:               $(Rscript --version 2>&1)"
+echo "Permutations:    $PERMUTATIONS"
+echo "Max attempts:    $MAX_ATTEMPTS"
+echo "Seed:            $SEED"
+echo "Started:         $(date)"
+echo "======================================="
+echo
+
+# ========
+# ANALYSIS
+# ========
+
+nullsens factorial \
+  data/inputs/P14/H3K4me3_Striata_intervals.merged.any_3_samples.final.annotated_with_description.txt \
+  data/inputs/P14/Htt_ChIPSeq.downsample_30000000.filtered_p1e3.merged_peaks.any_2_samples.final.conditionally_reproducible.txt \
+  --genome mm10 \
+  --cores "$CORES" \
+  --permutations "$PERMUTATIONS" \
+  --max-attempts "$MAX_ATTEMPTS" \
+  --seed "$SEED" \
+  --mappability-reference data/reference/mm10/mm10-blacklist.v2.bed \
+  --gc-tolerance 0.1 \
+  --chromatin-reference data/reference/mm10/ENCFF252YVM.bed \
+  --chromatin-label-col class \
+  --chromatin-priority \
+    PLS pELS dELS CTCF-only DNase-H3K4me3 DNase-only Low-DNase \
+  --output-prefix "$OUTPUT_PREFIX"
+
+# ====
+# DONE
+# ====
+
+echo
+echo "======================================="
+echo "Production run complete"
+echo "Finished: $(date)"
+echo "======================================="

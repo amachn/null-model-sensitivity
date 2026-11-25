@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# =======================
+# EDIT THESE FOR EACH JOB
+# =======================
+
+#PBS -N nullsens_diagnostic
+#PBS -l nodes=1:ppn=4
+#PBS -l walltime=02:00:00
+#PBS -j oe
+#PBS -o outputs/diagnostics/diagnostic.out
+
+# ===========
+# ENVIRONMENT
+# ===========
+
+set -euo pipefail
+
+source ~/.nullsens_env
+
+cd "$PBS_O_WORKDIR"
+
+CORES=$(wc -l < "$PBS_NODEFILE")
+
+# ===============
+# JOB INFORMATION
+# ===============
+
+echo "======================================="
+echo "nullsens diagnostic job"
+echo "======================================="
+echo "Job ID:          ${PBS_JOBID:-unknown}"
+echo "Host:            $(hostname)"
+echo "Working dir:     $(pwd)"
+echo "Allocated cores: $CORES"
+echo "Git branch:      $(git -C "$NULLSENS_ROOT" branch --show-current)"
+echo "Git commit:      $(git -C "$NULLSENS_ROOT" rev-parse HEAD)"
+echo "Python:          $(python --version 2>&1)"
+echo "R:               $(Rscript --version 2>&1)"
+echo "Started:         $(date)"
+echo "======================================="
+echo
+
+# ========
+# ANALYSIS
+# ========
+
+nullsens factorial \
+  data/H3K4me3_Striata_intervals.merged.any_3_samples.final.annotated_with_description.txt \
+  data/Htt_ChIPSeq.downsample_30000000.filtered_p1e3.merged_peaks.any_2_samples.final.conditionally_reproducible.txt \
+  --genome mm10 \
+  --cores "$CORES" \
+  --permutations 100 \
+  --seed 12345 \
+  --diagnostics \
+  --mappability-reference data/mm10-blacklist.v2.bed \
+  --gc-tolerance 0.1 \
+  --chromatin-reference data/ENCFF252YVM.bed \
+  --chromatin-label-col class \
+  --chromatin-priority \
+    PLS pELS dELS CTCF-only DNase-H3K4me3 DNase-only Low-DNase
+
+# ====
+# DONE
+# ====
+
+echo
+echo "======================================="
+echo "Diagnostic complete"
+echo "Finished: $(date)"
+echo "======================================="

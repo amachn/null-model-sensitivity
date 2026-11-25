@@ -1,0 +1,15 @@
+# nullsens / Kodiak environment
+
+module load python/3.14.6
+module load R/4.5.2
+
+# Kodiak intentionally uses R 4.5 / Bioconductor 3.22,
+# while the project lockfile currently targets a newer environment
+export RENV_CONFIG_SYNCHRONIZED_CHECK=FALSE
+
+# useful proj locations
+export NULLSENS_ROOT=/data/bentonm_shared/null_model_sensitivity
+export NULLSENS_TESTING="$NULLSENS_ROOT/testing"
+
+# Python env
+source "$NULLSENS_ROOT/.venv-kodiak/bin/activate"

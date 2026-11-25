@@ -1,0 +1,49 @@
+=======================================
+nullsens P14 production factorial
+=======================================
+Job ID:          298183.bcm11
+Host:            n075
+Working dir:     /data/bentonm_shared/null_model_sensitivity/testing
+Allocated cores: 16
+Git branch:      main
+Git commit:      206aa86a67abe591d791447837727fb01d62142d
+Git tag:         v0.2-production-backend
+Python:          Python 3.14.6
+R:               Rscript (R) version 4.5.2 (2025-10-31)
+Permutations:    1000
+Max attempts:    10000
+Seed:            12345
+Started:         Wed Nov 25 12:33:36 AM CST 2026
+=======================================
+
+[1/8] Running Baseline...
+[2/8] Running Mappability...
+[3/8] Running GC...
+[4/8] Running Chromatin...
+[5/8] Running Mappability + GC...
+[6/8] Running Mappability + Chromatin...
+[7/8] Running GC + Chromatin...
+[8/8] Running All...
+Factorial analysis complete.
+
+Null model              N     Observed Expected log2FC Z-score P-value     Runtime              
+------------------------------------------------------------------------------------------------
+Baseline                17672 1144     202.55   2.4977 61.73   0.000999001 41.48 s              
+Mappability             17672 1144     212.17   2.4308 58.89   0.000999001 64.93 s (1.08 min)   
+GC                      17672 1144     308.18   1.8923 43.12   0.000999001 373.22 s (6.22 min)  
+Chromatin               17672 1144     420.04   1.4455 32.39   0.000999001 32.81 s              
+Mappability + GC        17672 1144     309.45   1.8863 42.87   0.000999001 439.10 s (7.32 min)  
+Mappability + Chromatin 17672 1144     416.31   1.4584 33.30   0.000999001 96.48 s (1.61 min)   
+GC + Chromatin          17672 1144     485.29   1.2372 26.23   0.000999001 1010.32 s (16.84 min)
+All                     17672 1144     478.86   1.2564 27.86   0.000999001 1122.11 s (18.70 min)
+
+Total analysis runtime: 3180.47 s (53.01 min)
+
+JSON result: results/P14/P14_factorial1000_c16.json
+CSV result: results/P14/P14_factorial1000_c16.csv
+Factorial effects: results/P14/P14_factorial1000_c16.effects.csv
+
+=======================================
+Production run complete
+Finished: Wed Nov 25 01:29:22 AM CST 2026
+=======================================
