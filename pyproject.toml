@@ -21,6 +21,7 @@ where = ["src"]
 nullsens = [
     "r/*.R",
     "r/nulls/*.R",
+    "r/nulls/*.cpp",
     "r/.Rprofile",
     "r/renv.lock",
     "r/.gitignore",
