@@ -14,7 +14,13 @@ from nullsens.analysis.models import (
     NullConfig,
     ReferenceFiles,
 )
-from nullsens.analysis.reporting import print_analysis_result, print_factorial_progress, print_factorial_result
+from nullsens.analysis.reporting import (
+    print_analysis_result,
+    print_factorial_progress,
+    print_factorial_result,
+    write_analysis_outputs,
+    write_factorial_outputs
+)
 from nullsens.analysis.runner import run_analysis
 
 # - helpers -
@@ -32,6 +38,7 @@ def add_analysis_arguments(parser, enable_flags: bool) -> None:
     parser.add_argument("--max-attempts", type=int, default=10000, help="Maximum placement attempts (default: 10000)")
     parser.add_argument("--seed", type=int, help="Optional random seed")
     parser.add_argument("--diagnostics", action="store_true", help="Print backend timing + parallel-exec diagnostics")
+    parser.add_argument("--output-prefix", type=Path, help="Write JSON/CSV results using this output path prefix")
 
     # mappability masking
     if enable_flags:
@@ -39,7 +46,7 @@ def add_analysis_arguments(parser, enable_flags: bool) -> None:
 
     parser.add_argument("--mappability-reference", type=Path, help="Path to the mappability reference file")
     parser.add_argument("--mappability-threshold", type=float, default=MappabilityConfig().threshold,
-                        help=f"Optional mappability score threshold (default: {MappabilityConfig().threshold})")
+                        help=f"Optional mappability score threshold (default: no threshold)")
     parser.add_argument("--mappability-inclusion-workspace", action="store_true",
                         help="Treat the mappability workspace as allowed regions rather than excluded")
 
@@ -126,6 +133,16 @@ def analyze_command(args):
 
     print_analysis_result(result)
 
+    if args.output_prefix is not None:
+        try:
+            json_path, csv_path = write_analysis_outputs(args.output_prefix, request, result)
+        except OSError as ex:
+            print(f"\nError writing results: {ex}")
+            return
+
+        print(f"\nJSON result: {json_path}")
+        print(f"CSV result: {csv_path}")
+
 
 # run a 2^3 factorial enrichment analysis (requires map/chrom refs, runs all null models + combos)
 def factorial_command(args):
@@ -138,6 +155,20 @@ def factorial_command(args):
         return
 
     print_factorial_result(result)
+
+    if args.output_prefix is not None:
+        try:
+            json_path, csv_path, effects_path = write_factorial_outputs(args.output_prefix, request, result)
+        except OSError as ex:
+            print(f"\nError writing results: {ex}")
+            return
+
+        print(f"\nJSON result: {json_path}")
+        print(f"CSV result: {csv_path}")
+
+        if effects_path is not None:
+            print(f"Factorial effects: {effects_path}")
+
 
 # - CLI registration -
 def register_analysis_commands(subparsers):

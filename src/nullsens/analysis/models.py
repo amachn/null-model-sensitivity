@@ -2,8 +2,22 @@
 # - defines the data classes that will manage requests and results
 
 # libraries
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
+
+
+def _serialize_value(value: Any) -> Any:
+    if isinstance(value, Path):
+        return str(value.resolve())
+
+    if isinstance(value, dict):
+        return {key: _serialize_value(item) for key, item in value.items()}
+
+    if isinstance(value, list):
+        return [_serialize_value(item) for item in value]
+
+    return value
 
 
 @dataclass
@@ -60,6 +74,9 @@ class AnalysisRequest:
 
     null: NullConfig = field(default_factory=NullConfig)
     references: ReferenceFiles = field(default_factory=ReferenceFiles)
+
+    def to_dict(self) -> dict[str, Any]:
+        return _serialize_value(asdict(self))
 
 
 @dataclass

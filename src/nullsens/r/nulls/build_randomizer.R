@@ -3,14 +3,12 @@
 #   requested null constraints
 #
 # - at build time:
-#   - prepare mappability mask, if enabled
-#   - prepare GC context, if enabled
-#   - prepare chromatin context, if enabled
-#   - construct validator functions
+#   - prepare enabled null-model contexts
+#   - construct candidate validators
+#   - select the appropriate proposal mechanism
 # - at permutation time:
-#   - generate exact-width randomized regions
-#   - enforce static workspace masks during randomization
-#   - validate GC/chromatin constraints
+#   - generate exact-width candidate regions
+#   - validate enabled mappability, GC, and chromatin constraints
 #   - resample only failed regions until every region passes
 
 # runs every enabled per-region validator
@@ -69,23 +67,24 @@ build_randomizer <- function(
   if (max_attempts < 1L) { stop("max_attempts must be an integer >= 1.") }
   
   # ----
-  # 1 -> prepare context, static mask and candidate validators
+  # 1 -> prepare context and candidate validators
   # ----
   # these context objects need to exist outside of their if statements
   mappability_context <- NULL
   chromatin_context <- NULL
   
-  # NA means nullsens explicitly has no baseline forbidden mask
-  proposal_mask <- NA
-  
-  # GC and chrom validators will be stored here
+  # enabled null-model validators are stored here
   validators <- list()
   
   # ----
-  # 2 -> prepare mappability
+  # 2 -> prepare mappability filtering
   # ----
-  # mappability is primarily a static constraint rather than a validator.
-  # its forbidden regions can thus be handed directly to regioneR.
+  # mappability is enforced through post-proposal validation
+  # - regioneR::randomizeRegions can preserve the overall set of widths while
+  #   reordering masked candidates, which breaks the required one-to-one
+  #   correspondence between original[i] and candidate[i]
+  # - candidates are thus proposed w/o a regioneR mask and rejected if they
+  #   overlap the configured excluded regions
   if (isTRUE(config$mappability$enabled)) {
     if (is.null(refs$mappability)) {
       stop("Mappability masking is enabled but no reference was provided.")
@@ -98,8 +97,13 @@ build_randomizer <- function(
       inclusion_workspace = config$mappability$inclusion_workspace
     )
     
-    # normally, mappability is enforced directly by randomizeRegions()
-    proposal_mask <- mappability_context$mask
+    validators$mappability <- function(original, candidate) {
+      validate_mappability(
+        context   = mappability_context,
+        original  = original,
+        candidate = candidate
+      )
+    }
   }
   
   # ----
@@ -154,9 +158,9 @@ build_randomizer <- function(
     }
   }
   
-  # -----
-  # 4A -> prepare chromatin-context matching
-  # -----
+  # ----
+  # 4 -> prepare chromatin-context matching
+  # ----
   # like gc, chromatin depends on the corresponding original interval, so it
   # is also represented by a validator rather than a static mask.
   if (isTRUE(config$chromatin$enabled)) {
@@ -182,29 +186,6 @@ build_randomizer <- function(
     }
   }
   
-  # -----
-  # 4B -> choose how mappability is enforced
-  # -----
-  # mappability alone can be enforced directly by regioneR as a static mask.
-  # - when another region-specific validator is active, however, candidates
-  #   must preserve their index correspondence with the original regions
-  # - masked randomizeRegions() preserves the set of widths but may reorder
-  #   them, which breaks GC/chromatin matching
-  # - in those combinations, enforce mappability as a validator instead
-  if (!is.null(mappability_context) & length(validators) > 0L) {
-    validators$mappability <- function(original, candidate) {
-      validate_mappability(
-        context   = mappability_context,
-        original  = original,
-        candidate = candidate
-      )
-    }
-    
-    # propose without the static mask; rejected candidates will instead be
-    # resampled until they satisfy the mappability constraint
-    proposal_mask <- NA
-  }
-  
   # ----
   # 5 -> define the randomization proposer
   # ----
@@ -220,7 +201,7 @@ build_randomizer <- function(
     
     do.call(
       regioneR::randomizeRegions,
-      c(list(A = A, genome = genome, mask = proposal_mask), args)
+      c(list(A = A, genome = genome, mask = NA), args)
     )
   }
   
