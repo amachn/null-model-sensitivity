@@ -149,6 +149,13 @@ build_randomizer <- function(
       # map each region back to its position in the complete original set
       original_indices <- match(original_keys, gc_original_keys)
       
+      if (anyNA(original_indices)) {
+        stop(
+          "GC validator received an original region that couldn't be mapped ",
+          "back to the prepared region set."
+        )
+      }
+
       validate_gc(
         context     = gc_context, 
         original    = original,

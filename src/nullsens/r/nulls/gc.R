@@ -1,20 +1,62 @@
+# ~~~ src/nullsens/r/nulls/gc.R ~~~
+# - prepares genome sequence indexes for GC matching
+# - computes GC and N fractions for genomic intervals
+# - validates candidate regions against the GC content of their originals
 
-suppressPackageStartupMessages({
-  library(GenomicRanges)
-  library(GenomeInfoDb)
-  library(IRanges)
-  library(Biostrings)
-})
+# resolve native GC backend relative to this file
+nulls_dir <- dirname(
+  normalizePath(sys.frame(1)$ofile, winslash = "/", mustWork = TRUE))
+
+# compiled GC-index functions are cached for the lifetime of the R process
+gc_lib <- new.env(parent = emptyenv())
+
+gc_get_lib <- function() {
+  if (is.null(gc_lib$fns)) {
+    if (!requireNamespace("Rcpp", quietly = TRUE)) {
+      stop("GC matching requires the Rcpp package.", call. = FALSE)
+    }
+
+    env <- new.env(parent = globalenv())
+
+    tryCatch(
+      Rcpp::sourceCpp(file = file.path(nulls_dir, "gc_index.cpp"), env = env),
+      error = function(err) {
+        stop(
+          "GC matching requires a working C++ compiler for Rcpp.\n",
+          conditionMessage(err), call. = FALSE
+        )
+      }
+    )
+
+    gc_lib$fns <- env
+  }
+
+  gc_lib$fns
+}
+
+# window indexes, shared by all randomizers in one R session
+gc_index_store <- new.env(parent = emptyenv())
 
 prepare_gc <- function(genome, tolerance = 0.02, flank = 0L, max_n = 0.1) {
   if (!is.numeric(tolerance) || length(tolerance) != 1L || tolerance <= 0) {
-    stop("GC tolerance must be a single number > 0, got: ", paste(tolerance, collapse = ", "))
+    stop(
+      "GC tolerance must be a single number > 0, got: ",
+      paste(tolerance, collapse = ", ")
+    )
   }
+
   if (!is.numeric(flank) || length(flank) != 1L || flank < 0) {
-    stop("GC flank must be a single number >= 0, got: ", paste(flank, collapse = ", "))
+    stop(
+      "GC flank must be a single number >= 0, got: ",
+      paste(flank, collapse = ", ")
+    )
   }
+
   if (!is.numeric(max_n) || length(max_n) != 1L || max_n < 0 || max_n > 1) {
-    stop("GC max_n must be between 0 and 1, got: ", paste(max_n, collapse = ", "))
+    stop(
+      "GC max_n must be between 0 and 1, got: ",
+      paste(max_n, collapse = ", ")
+    )
   }
 
   # GC is computed from the genome sequence, so a BSgenome is required
@@ -46,54 +88,69 @@ prepare_gc <- function(genome, tolerance = 0.02, flank = 0L, max_n = 0.1) {
     stats::setNames(as.numeric(Biostrings::width(sequences)), names(sequences))
   }
 
-  # chromosome sequences are loaded on first use and cached for later permutations
-  cache <- new.env(parent = emptyenv())
-  fetch <- function(chr) {
-    if (is.null(cache[[chr]])) {
+  # compile the C++ backend during GC setup
+  lib <- gc_get_lib()
+
+  # chromosome indexes are built lazily and cached
+  index_cache <- new.env(parent = emptyenv())
+  source_name <- if (is.character(genome)) genome else NULL
+
+  fetch_index <- function(chr) {
+    key <- if (is.null(source_name)) NULL else paste(source_name, chr, sep = "|")
+    hit <- if (is.null(key)) index_cache[[chr]] else gc_index_store[[key]]
+
+    if (is.null(hit)) {
       seq <- sequences[[chr]]
       if (methods::is(seq, "MaskedDNAString")) seq <- Biostrings::unmasked(seq)
-      cache[[chr]] <- seq
+      hit <- lib$gc_build_index(charToRaw(as.character(seq)))
+      if (is.null(key)) index_cache[[chr]] <- hit else gc_index_store[[key]] <- hit
     }
-    cache[[chr]]
+
+    hit
   }
 
   list(
-    fetch       = fetch,
-    seqnames    = names(genome_seqs),
-    source      = if (is.character(genome)) genome else class(genome)[1],
-    tolerance   = tolerance,
-    flank       = as.integer(flank),
-    max_n       = max_n,
-    n_sequences = length(genome_seqs)
+    fetch_index  = fetch_index,
+    window_stats = lib$gc_window_stats,
+    seqnames     = names(genome_seqs),
+    seq_lengths  = genome_seqs,
+    source       = if (is.character(genome)) genome else class(genome)[1],
+    tolerance    = tolerance,
+    flank        = as.integer(flank),
+    max_n        = max_n,
+    n_sequences  = length(genome_seqs)
   )
 }
 
-# GC fraction and N fraction of each interval (+/- flank), order preserved
+# compute GC and N fractions for each interval (+/- flank), preserving order
 gc_content <- function(context, regions) {
   n <- length(regions)
   gc <- rep(NA_real_, n)
   n_frac <- rep(1, n)
+  if (n == 0L) return(list(gc = gc, n_frac = n_frac))
 
   chroms <- as.character(GenomicRanges::seqnames(regions))
-  starts <- GenomicRanges::start(regions) - context$flank
-  ends <- GenomicRanges::end(regions) + context$flank
+  chrom_lengths <- unname(context$seq_lengths[chroms])
 
-  for (chr in intersect(unique(chroms), context$seqnames)) {
-    idx <- which(chroms == chr)
-    seq <- context$fetch(chr)
-    views <- IRanges::Views(
-      seq,
-      start = as.integer(pmax(1, starts[idx])),
-      end = as.integer(pmin(length(seq), ends[idx]))
-    )
-    widths <- IRanges::width(views)
-    n_count <- Biostrings::letterFrequency(views, "N")[, 1]
-    gc_count <- Biostrings::letterFrequency(views, "GC")[, 1]
-    called <- widths - n_count
+  left <- pmax(1L, GenomicRanges::start(regions) - context$flank)
+  right <- pmin(chrom_lengths, GenomicRanges::end(regions) + context$flank)
 
-    gc[idx] <- ifelse(called > 0, gc_count / called, NA_real_)
-    n_frac[idx] <- n_count / widths
-  }
+  # skip windows that are off the chromosome
+  usable <- !is.na(chrom_lengths) & left <= right
+  if (!any(usable)) return(list(gc = gc, n_frac = n_frac))
+
+  used_chroms <- unique(chroms[usable])
+  indexes <- lapply(used_chroms, context$fetch_index)
+  chr_ids <- match(chroms[usable], used_chroms)
+  counts <- context$window_stats(
+    indexes, chr_ids, as.integer(left[usable]), as.integer(right[usable])
+  )
+
+  widths <- right[usable] - left[usable] + 1L
+  called <- widths - counts$n
+
+  gc[usable] <- ifelse(called > 0, counts$gc / called, NA_real_)
+  n_frac[usable] <- counts$n / widths
 
   list(gc = gc, n_frac = n_frac)
 }
