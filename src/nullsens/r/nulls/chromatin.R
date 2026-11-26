@@ -1,32 +1,63 @@
-# ~~~ src/nullsens/r/nulls/mappability.R ~~~
+# ~~~ src/nullsens/r/nulls/chromatin.R ~~~
 # - prepares chromatin-state references
 # - proposes candidates within the original region's chromatin state
 # - validates chromatin-state preservation
 
-# import an ENCODE cCRE-style BED file
-# - cCRE files store the chromatin/state class in a specific column
-read_ccre <- function(path, class_col = 10L) {
-  data <- utils::read.delim(
-    path, header = FALSE, quote = "", 
-    comment.char = "", stringsAsFactors = FALSE
-  )
-  
-  if (ncol(data) < class_col) {
-    stop(
-      "Chromatin reference doesn't contain class column ", 
-      class_col, ": ", path
+# import a chromatin-state BED and normalize its selected state label
+# - standard BED files (e.g. BED4 `name`) are imported through rtracklayer
+# - `class` preserves compatibility with the ENCODE cCRE-style reference
+read_chromatin_reference <- function(path, label_col = NULL) {
+  if (identical(label_col, "class")) {
+    class_col <- 10L
+    data <- utils::read.delim(
+      path, header = FALSE, quote = "",
+      comment.char = "", stringsAsFactors = FALSE
     )
+    
+    if (ncol(data) < class_col) {
+      stop(
+        "Chromatin reference doesn't contain cCRE class column",
+        class_col, ": ", path
+      )
+    }
+    
+    regions <- GenomicRanges::GRanges(
+      seqnames = data[[1]],
+      ranges = IRanges::IRanges(
+        start = data[[2]] + 1L, # BED is 0-based
+        end = data[[3]]
+      )
+    )
+    
+    labels <- as.character(data[[class_col]])
+  } else {
+    regions <- rtracklayer::import(path)
+    
+    if (is.null(label_col)) {
+      S4Vectors::mcols(regions) <- NULL
+      return(regions)
+    }
+    
+    available <- names(S4Vectors::mcols(regions))
+    
+    if (!label_col %in% available) {
+      stop(
+        "Chromatin label column '", label_col, "' wasn't found in ", path,
+        ". Available metadata columns: ",
+        if (length(available) > 0L) {
+          paste(available, collapse = ", ")
+        } else { "none" }
+      )
+    }
+    
+    labels <- as.character(S4Vectors::mcols(regions)[[label_col]])
   }
   
-  regions <- GenomicRanges::GRanges(
-    seqnames = data[[1]],
-    ranges = IRanges::IRanges(
-      start = data[[2]] + 1L, # BED is 0-based
-      end = data[[3]]
-    )
-  )
+  if (anyNA(labels) || any(!nzchar(labels))) {
+    stop("Chromatin reference contains missing/empty state labels: ", path)
+  }
   
-  regions$class <- data[[class_col]]
+  S4Vectors::mcols(regions) <- S4Vectors::DataFrame(chromatin_label = labels)
   
   regions
 }
@@ -40,7 +71,10 @@ prepare_chromatin <- function(
   }
 
   genome_gr <- as_genome_gr(genome)
-  context <- conform_regions(read_ccre(chromatin_bed), genome_gr)
+  context <- conform_regions(
+    read_chromatin_reference(chromatin_bed, label_col),
+    genome_gr
+  )
   
   # optionally enlarge chromatin-state intervals before constructing the map
   if (padding > 0L) {
@@ -57,11 +91,7 @@ prepare_chromatin <- function(
   if (is.null(label_col)) {
     groups <- list(`in` = context)
   } else {
-    if (!label_col %in% names(S4Vectors::mcols(context))) {
-      stop("Chromatin label column '", label_col, "' wasn't found.")
-    }
-    
-    groups <- as.list(split(context, S4Vectors::mcols(context)[[label_col]]))
+    groups <- as.list(split(context, context$chromatin_label))
   }
   
   # priority determines which state wins if state annotations overlap
