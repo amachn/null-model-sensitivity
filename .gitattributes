@@ -1,7 +1,13 @@
+reproductions/** linguist-detectable=false
 *.bed filter=lfs diff=lfs merge=lfs -text
 *.bed.gz filter=lfs diff=lfs merge=lfs -text
 *.bigwig filter=lfs diff=lfs merge=lfs -text
 *.bw filter=lfs diff=lfs merge=lfs -text
 *.png filter=lfs diff=lfs merge=lfs -text
 *.xlsx filter=lfs diff=lfs merge=lfs -text
+data/inputs/P14/H3K4me3_Striata_intervals.merged.any_3_samples.final.annotated_with_description.txt filter=lfs diff=lfs merge=lfs -text
+reproductions/P05/boca_peaks.zip filter=lfs diff=lfs merge=lfs -text
+reproductions/P13/data/SRX1025894_hg38.broadPeak filter=lfs diff=lfs merge=lfs -text
+reproductions/P14/authors_files/Htt_ChIPSeq_Files/06_ActiveMotif_Histone_Marks/H3K*.txt filter=lfs diff=lfs merge=lfs -text
 reproductions/P15/data/genrichAllPeaks_m10_g50_9.15.21.noBLnarrowpeak.gz filter=lfs diff=lfs merge=lfs -text
+

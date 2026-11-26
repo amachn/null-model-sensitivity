@@ -1,6 +1,11 @@
 .venv/
+build/
+dist/
+jobs/env/
+testing/
+*.egg-info/
 **/__pycache__/
-src/*.egg-info/
+
 .Rproj.user
 .Rhistory
 .DS_Store
